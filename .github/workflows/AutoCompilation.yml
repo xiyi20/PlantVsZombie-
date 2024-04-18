@@ -1,0 +1,47 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: AutoCompilation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'main.py'
+      - '.github/workflows/AutoCompilation.yml'
+      
+jobs:
+  pyinstaller-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame
+
+      - name: Create Executable
+        run: |
+          pyinstaller --onefile --windowed --icon 'images\icon.ico' main.py
+
+      - name: Init Files(Gemini)
+        run: |
+          mkdir temp\PVZ
+          copy dist\main.exe tem\PVZ
+          copy fonts temp\PVZ
+          copy images temp\PVZ
+          copy sounds temp\PVZ
+          copy config.json temp\PVZ
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PVZ-Artifacts
+          path: temp
