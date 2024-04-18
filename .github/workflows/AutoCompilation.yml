@@ -42,7 +42,7 @@ jobs:
           copy dist\main.exe temp\PVZ
           copy fonts\* temp\PVZ\fonts
           copy images\* temp\PVZ\images
-          copy sounds\* temp\PVZ\sounds
+          copy sounds\*.ogg temp\PVZ\sounds
           copy sounds\bgm\* temp\PVZ\sounds\bgm
           copy config.json temp\PVZ
 
