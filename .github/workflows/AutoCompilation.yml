@@ -38,13 +38,12 @@ jobs:
           mkdir temp\PVZ\fonts
           mkdir temp\PVZ\images
           mkdir temp\PVZ\sounds
-          mkdir temp\PVZ\sounds\bgm
           copy dist\main.exe temp\PVZ
-          copy fonts\* temp\PVZ\fonts
-          copy images\* temp\PVZ\images
-          copy sounds\*.ogg temp\PVZ\sounds
-          copy sounds\bgm\* temp\PVZ\sounds\bgm
           copy config.json temp\PVZ
+          xcopy /E /I fonts\* temp\PVZ\fonts
+          xcopy /E /I images\* temp\PVZ\images
+          xcopy /E /I sounds\* temp\PVZ\sounds
+          
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
