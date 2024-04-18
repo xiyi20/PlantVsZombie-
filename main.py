@@ -3,7 +3,6 @@ import pygame.mixer
 from pygame.locals import K_a,K_z
 import random
 import json
-import time
 import math
 
 class Lawn:
@@ -54,7 +53,7 @@ class Card:
         screen.blit(plantimage,(self.x+10,25))
         color=(255, 0, 0) if int(self.price)>self.game.playSun else (0, 0, 0)
         screen.blit(pricetext.render(self.price, True, color),(self.x+2,62))
-        if self.selected:screen.blit(self.selected,(self.x-2,8))
+        if self.selected:screen.blit(self.selected,(self.x,8))
         if self.curtime!='0':
             screen.blit(pygame.transform.scale(self.coolimage,(50,int(self.curtime)*self.interval)),(self.x,7))
             self.curtime=str(int(self.curtime)-1)
@@ -577,8 +576,8 @@ class Game:
                 self.zombierule[key+180*i]=1
         self.background = pygame.transform.scale(getImageSource('images/scene/白天.jpg'), (1400, 600))
         self.plantmenu =getImageSource('images/widget/菜单栏/植物商店.png')
-        self.shovelslot=pygame.transform.scale(getImageSource('images/widget/菜单栏/铲子槽.png'),(90,50))
-        self.shovel=getImageSource('images/widget/菜单栏/铲子.png')
+        self.shovelslot=pygame.transform.scale(getImageSource('images/widget/菜单栏/铲子槽.png'),(87,87))
+        self.shovel=pygame.transform.scale(getImageSource('images/widget/菜单栏/铲子.png'),(70,70))
         self.shovelpos=(461,9)
         self.plantpos=(-100,-100)
         self.menu=getImageSource('images/widget/菜单栏/按钮.png')
@@ -623,8 +622,6 @@ class Game:
         screen.blit(scoretext.render(str(self.playSun), True, (0, 0, 0)), (26, 62))
         screen.blit(menutext.render('菜单', True, (0, 255, 0)), (715, 8))
         shovelpos=self.shovelpos if self.shovelactive else (463,9)
-        screen.blit(self.shovel,shovelpos)
-        
         for car in self.Cars:
             car.draw()
         for card in self.Cards:
@@ -641,6 +638,7 @@ class Game:
                     zombie.draw()
         for peas in self.Peass:
             peas.draw()
+        screen.blit(self.shovel,shovelpos)
         if self.curplant and self.curplant!='displant':screen.blit(self.curplant.getimage(),self.plantpos)  
 
     def logical(self):
@@ -714,7 +712,7 @@ class Game:
                                             else:
                                                 if self.lastcard:self.lastcard.selected=None
                                                 plantSlot_ogg.play()
-                                                card.selected=getImageSource('images/widget/已被选.png')
+                                                card.selected=card.coolimage
                                                 self.lastcard=card
                                                 self.curplant=card.plant
                                         else:invalidClick_ogg.play()
@@ -738,7 +736,7 @@ class Game:
                     elif event.type==pygame.MOUSEMOTION:
                         if self.curplant and self.curplant!='displant':self.plantpos=(event.pos[0]-30,event.pos[1]-40)
                         else:self.plantpos=(-100,-100)
-                        if self.shovelactive:self.shovelpos=event.pos
+                        if self.shovelactive:self.shovelpos=(event.pos[0]-30,event.pos[1]-40)
                         else:self.shovelpos=(463,9)
 
                 if event.type == pygame.QUIT:
@@ -889,8 +887,8 @@ class MainMenu:
 
         #读取配置
         self.naming=True
-        self.typing=''
         self.name=rwconfig.name
+        self.typing=self.name
         self.confirm=pygame.Rect(190,331,204,44)
         self.cancel=pygame.Rect(410,331,204,44)
 
@@ -922,10 +920,13 @@ class MainMenu:
         screen.blit(menutext.render('任意操作以开始游戏',True,(255, 215, 0)),(295,510))
         self.draw()
     
-    def click(self):
-        if not self.typing:
+    def click(self,mode):
+        val=self.name if mode==0 else self.typing
+        if not val:
             invalidClick_ogg.play()
-        else:return True
+        else:
+            menuClick_ogg.play()
+            return True
 
     def setname(self):
         while self.naming:
@@ -941,13 +942,14 @@ class MainMenu:
                         self.typing+=chr(event.key)
                 elif event.type==pygame.MOUSEBUTTONDOWN:
                     if self.confirm.collidepoint(event.pos):
-                        if self.click():
+                        if self.click(1):
                             rwconfig.wconfig('user','name',self.typing)
                             self.name=self.typing
-                            self.typing=''
                             self.naming=False
                     elif self.cancel.collidepoint(event.pos):
-                        if self.click():self.naming=False
+                        if self.click(0):
+                            self.typing=self.name
+                            self.naming=False
                 screen.blits([
                     (self.rename,(154,104)),
                     (pygame.transform.scale(self.game.menu,(204,44)),(190,331)),
@@ -1039,13 +1041,16 @@ class MainMenu:
                         self.naming=True
                         self.setname()
                     elif self.exitRect.collidepoint(event.pos):
+                        menuClick_ogg.play()
                         pygame.quit()
                         exit()
                     elif self.helpRect.collidepoint(event.pos):
+                        menuClick_ogg.play()
                         self.flag=False
                         self.helpering=True
                         self.helper()
                     elif self.optionRect.collidepoint(event.pos):
+                        menuClick_ogg.play()
                         menu.flag=True
                         menu.button=menu.button0
                         menu.draw()
@@ -1062,15 +1067,14 @@ def getSoundEffect(path):
 if __name__=='__main__':
     pygame.init()
     pygame.mixer.init()
-    scoretext = pygame.font.Font('font/digit.ttf', 15)
-    pricetext = pygame.font.Font('font/digit.ttf', 13)
-    menutext=pygame.font.Font('font/fzsr.ttf',22)
-    tittletext=pygame.font.Font('font/fzsr.ttf',48)
+    scoretext = pygame.font.Font('fonts/digit.ttf', 15)
+    pricetext = pygame.font.Font('fonts/digit.ttf', 13)
+    menutext=pygame.font.Font('fonts/fzsr.ttf',22)
+    tittletext=pygame.font.Font('fonts/fzsr.ttf',48)
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((800, 600))
-    pygame.display.set_caption('PvZ test')
-    icon = getImageSource('images/icon.png')
-    pygame.display.set_icon(icon)
+    pygame.display.set_caption('Plant Vs Zombie α')
+    pygame.display.set_icon(getImageSource('images/icon.png'))
     plantDead_ogg=getSoundEffect('sounds/bigchomp.ogg')
     zombieComing_ogg=getSoundEffect('sounds/awooga.ogg')
     zombieEating_ogg=[
@@ -1092,6 +1096,7 @@ if __name__=='__main__':
             'sounds/lowgroan2.ogg'
         )
     ]
+    menuClick_ogg=getSoundEffect('sounds/grassstep.ogg')
     buttonClick_ogg=getSoundEffect('sounds/buttonClick.ogg')
     mainmenuBgm_ogg=getSoundEffect('sounds/bgm/Laura Shigihara - Crazy Dave.ogg')
     losemusic_ogg=[
