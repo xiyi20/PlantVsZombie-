@@ -35,10 +35,13 @@ jobs:
       - name: Init Files
         run: |
           mkdir temp\PVZ
+          mkdir temp\PVZ\fonts
+          mkdir temp\PVZ\images
+          mkdir temp\PVZ\sounds
           copy dist\main.exe temp\PVZ
-          copy fonts temp\PVZ
-          copy images temp\PVZ
-          copy sounds temp\PVZ
+          copy fonts\* temp\PVZ\fonts
+          copy images\* temp\PVZ\images
+          copy sounds\* temp\PVZ\sounds
           copy config.json temp\PVZ
 
       - name: Upload Artifacts
