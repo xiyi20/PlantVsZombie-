@@ -32,10 +32,10 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --icon 'images\icon.ico' main.py
 
-      - name: Init Files(Gemini)
+      - name: Init Files
         run: |
           mkdir temp\PVZ
-          copy dist\main.exe tem\PVZ
+          copy dist\main.exe temp\PVZ
           copy fonts temp\PVZ
           copy images temp\PVZ
           copy sounds temp\PVZ
