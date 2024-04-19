@@ -1,5 +1,10 @@
 {
     "user": {
-        "name": "dxcxy"
+        "name": "",
+        "money":0
+    },
+    "volume": {
+        "game": 0.535275,
+        "menu": 0.043875
     }
 }
