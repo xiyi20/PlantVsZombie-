@@ -61,6 +61,63 @@ class Card:
             screen.blit(pygame.transform.scale(self.coolimage,(50,int(self.curtime)*self.interval)),(self.x,7))
             self.curtime=str(int(self.curtime)-1)
 
+class Coin:
+    def __init__(self,x,y,game,type=0) -> None:
+        self.x=x
+        self.y=y
+        self.val=50
+        self.pick=False
+        self.first=True
+        self.xspeed=0
+        self.yspeed=0
+        self.game=game
+        self.tick=0
+        self.fall_ogg=coinfall_ogg if type==0 else diamondfall_ogg
+        self.pick_ogg=coinpick_ogg
+        self.image=objectType[12]
+        self.rect=self.image.get_rect(topleft=(self.x,self.y))
+        self.endRect=pygame.Rect(48,580,20,20)
+        if self.fall_ogg:
+            self.fall_ogg.play()
+
+    def draw(self):
+        if self.pick:
+            if self.first:
+                self.first=False
+                if self.pick_ogg:self.pick_ogg.play()
+                self.xspeed=(10-self.x)/60
+                self.yspeed=(580-self.y)/60
+            self.x+=self.xspeed
+            self.y+=self.yspeed       
+            if self.rect.colliderect(self.endRect):self.pickup()
+        self.tick+=1
+        screen.blit(self.image,(self.x,self.y))
+        self.rect=self.image.get_rect(topleft=(self.x,self.y))
+        if self.tick==1200:self.game.Coins.remove(self)
+
+    def pickup(self):
+        self.game.money+=self.val
+        rwconfig.wconfig('user','money',self.game.money)
+        self.game.Coins.remove(self)
+
+class SilverCoin(Coin):
+    def __init__(self, x, y,game) -> None:
+        super().__init__(x, y,game)
+
+class GoldCoin(Coin):
+    def __init__(self, x, y,game) -> None:
+        super().__init__(x, y,game)
+        self.val=100
+        self.image=objectType[13]    
+
+class Diamond(Coin):
+    def __init__(self, x, y,game) -> None:
+        super().__init__(x, y,game,1)
+        self.val=300
+        self.fall_ogg=diamondfall_ogg
+        self.pick_ogg=diamondpick_ogg
+        self.image=objectType[14]  
+
 class Object:
     def __init__(self) -> None:
         self.tick=0
@@ -115,7 +172,7 @@ class Sun(Object):
         self.pick=False
         self.images=objectType[1]
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
-        self.endRect=pygame.Rect(10,10,20,20)
+        self.endRect=pygame.Rect(0,0,20,20)
     
     def draw(self):
         if not self.pick:
@@ -124,13 +181,13 @@ class Sun(Object):
                 self.y=self.cury
             else:self.y=self.cury if self.falling else self.targety
         else:
-            self.x+=-self.x/30
-            self.y+=-self.y/30
+            self.x+=(-self.x)/30
+            self.y+=(-10-self.y)/30
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
         if self.rect.colliderect(self.endRect):self.pickup()
         if self.tick%4==0:self.image_index = (self.image_index+1) % len(self.images)
         self.tick+=1
-        if self.tick-self.life==0:game.Suns.remove(self)  
+        if self.tick==self.life:game.Suns.remove(self)  
         screen.blit(self.images[self.image_index], (self.x, self.y+20))    
 
     def pickup(self):
@@ -204,7 +261,7 @@ class Plant:
             plantDead_ogg.play()
             return True
 
-class Sunflower(Plant):
+class SunFlower(Plant):
     sunprice=25
     image='images/向日葵/0.png'
     def __init__(self,pos,game):
@@ -436,7 +493,6 @@ class Zombie:
         self.row=game.loadzombies[y]
         self.eating=None
         self.eat_count=0
-        self.type=type
         self.state='walk'
         self.fps=4
         self.hiteffect=splat_ogg
@@ -502,6 +558,12 @@ class Zombie:
             random.choice(zombie_falling_ogg).play()
 
     def distory(self):
+        choose=random.randrange(100)
+        if 0<choose<=10:
+            if 5<choose<=10:money=SilverCoin(self.x+60,self.y+120,self.game)
+            elif 3<choose<=5:money=GoldCoin(self.x+60,self.y+120,self.game)
+            elif 0<choose<=3:money=Diamond(self.x+60,self.y+120,self.game)
+            self.game.Coins.append(money)
         if self.sunval!=0:self.game.Suns.append(Sun(self.sunval,(self.x+45,self.y+80),self.game))
         self.game.Zombies.remove(self)
         self.game.zombiesInroad[game.loadzombies[self.y]].remove(self)
@@ -523,7 +585,6 @@ class RoadZ(Zombie):
         self.y=y
         self.game=game
         self.blood=640
-        self.sunval=25
         self.fps=5.5
         self.image_index = 0
         self.rect = pygame.Rect(self.x+100,self.y,20,48) 
@@ -534,7 +595,6 @@ class IronBZ(Zombie):
         self.y=y
         self.game=game
         self.blood=1300
-        self.sunval=100
         self.fps=5.5
         self.image_index = 0
         self.hiteffect=ironHit_ogg
@@ -552,12 +612,14 @@ class Game:
         self.plantpos=(-100,-100)
         self.menu=getImageSource('images/widget/菜单栏/按钮.png')
         self.menuRect=self.menu.get_rect(topleft=(680, 0))
+        self.money=rwconfig.money
+        self.coinbank=objectType[15]
         self.readysetplant_ogg=getSoundEffect('sounds/readysetplant.ogg')
         self.colload={20:1,102:2,184:3,266:4,348:5,430:6,512:7,594:8,676:9}
         self.rowload={95:1,191:2,287:3,383:4,479:5}
         self.loadzombies={20:1,116:2,212:3,308:4,404:5}
         self.plantcards={
-            'images/向日葵/0.png':Sunflower,
+            'images/向日葵/0.png':SunFlower,
             'images/豌豆射手/0.png':PeasShoter,
             'images/双重射手/0.png':Repeater,
             'images/火爆辣椒/0.png':SpicyChili,
@@ -572,7 +634,6 @@ class Game:
         self.tick=0
         self.playSun=25
         self.curScore=0
-        self.endScore=0
         self.flag=True
         self.begining=False
         self.animation=False
@@ -582,11 +643,9 @@ class Game:
         self.wonpos=[550,350]
         self.zombierule=dict()
         self.ZombiesType=[NomalZ]
-        self.zombiestime={660:1,1200:2,3000:3,4800:5,7200:7,9600:8,12000:15,15000:25}
-        for key,value in self.zombiestime.items():
-            for i in range(value):
-                self.endScore+=1
-                self.zombierule[key+180*i]=1
+        self.zombiestime={60:1,1200:2,3000:3,4800:5,7200:7,9600:8,12000:15,15000:25}
+        self.waves=list(self.zombiestime.keys())
+        self.endScore=sum([i for i in self.zombiestime.values()])
         self.shovelactive=False
         self.curplant=None
         self.lastcard=None
@@ -603,6 +662,7 @@ class Game:
         self.Suns = []
         self.Zombies=[]
         self.Cars=[Car(-30,y+35,self) for y in self.rowload.keys()]
+        self.Coins=[]
         self.paused = False 
 
     def win(self):
@@ -615,6 +675,7 @@ class Game:
             if self.alpha>255:
                 self.flag=False
                 mainmenu.flag=True
+                mainmenu.playmusic()
                 mainmenu.draw()
         else:
             if self.wonflag:
@@ -623,6 +684,11 @@ class Game:
             screen.blit(self.moneybag,self.wonpos)
             self.moneybagRect=self.moneybag.get_rect(topleft=self.wonpos)
             if self.moneybagRect.colliderect(self.endRect):
+                ypos=[0,1,2,1,0]
+                for i in range(5):
+                    coin=GoldCoin(self.wonpos[0]-55+45*i,self.wonpos[1]-18*ypos[i],self)
+                    coin.pick=True
+                    self.Coins.append(coin)
                 self.begining=False
                 self.animation=True
 
@@ -650,6 +716,10 @@ class Game:
                     zombie.draw()
         for peas in self.Peass:
             peas.draw()
+        screen.blit(self.coinbank,(35,570))
+        screen.blit(scoretext.render(str(self.money), True, (255, 215, 0)), (80, 578))
+        for coin in self.Coins:
+            coin.draw()
         screen.blit(self.shovel,shovelpos)
         if self.curplant and self.curplant!='displant':screen.blit(self.curplant.getimage(),self.plantpos)  
 
@@ -657,8 +727,15 @@ class Game:
         #出僵尸，阳光
         if self.tick==3000:self.ZombiesType.append(RoadZ)
         elif self.tick==7200:self.ZombiesType.append(IronBZ)
-        if self.tick in self.zombierule:
-            print(self.tick)
+        if self.tick in self.zombiestime:
+            print('当前为第:',self.waves.index(self.tick)+1,' 波')
+            interval=180 if self.tick<15000 else 90
+            if self.tick==self.waves[-1]:
+                self.waves.append(self.waves[-1]+3000)
+                self.zombiestime[self.waves[-1]]=25
+            for i in range(self.zombiestime[self.tick]):
+                self.zombierule[self.tick+interval*i]=1
+        if self.tick in self.zombierule:   
             if self.first:
                 zombieComing_ogg.play()
                 self.first=False
@@ -670,7 +747,7 @@ class Game:
         if self.Zombies and random.randrange(1000)==0:
             random.choice(zombieGroan_ogg).play()
         #胜利
-        if self.curScore==self.endScore:
+        if self.curScore==self.endScore and not self.loop:
             self.won=True
         #失败
         for zombie in self.Zombies:
@@ -690,6 +767,7 @@ class Game:
         pygame.mixer.music.play(-1)
     
     def gamebegin(self,loop=False):
+        self.loop=loop
         mainmenuBgm_ogg.stop()
         self.begining=True
         self.readysetplant_ogg.play()
@@ -714,63 +792,66 @@ class Game:
                                     sun.pick=True
                                     pickup_ogg.play()
                                     break
-                            else:
-                                self.shovelactive=False
-                                if self.won and self.moneybagRect.collidepoint(event.pos):
-                                    self.wonflag=True
-                                    winmusic_ogg.play()
-                                if self.shovel.get_rect(topleft=(464, 9)).collidepoint(event.pos):
-                                    if self.shovelactive:
+                            for coin in self.Coins:
+                                if coin.rect.collidepoint(event.pos):
+                                    coin.pick=True
+                                    break
+                            if self.won and self.moneybagRect.collidepoint(event.pos):
+                                self.wonflag=True
+                                pygame.mixer.music.stop()
+                                winmusic_ogg.play()
+                            if self.shovel.get_rect(topleft=(464, 9)).collidepoint(event.pos):
+                                if self.lastcard:self.lastcard.selected=None
+                                self.curplant='displant'
+                                shovel_ogg.play()
+                                self.shovelactive=True
+                            elif self.menuRect.collidepoint(event.pos):
+                                menu.flag=True
+                                menu.returnimg=menu.returnimg0
+                                menu.draw()
+                            for card in self.Cards:
+                                if card.rect.collidepoint(event.pos):
+                                    if self.playSun>=int(card.price) and card.curtime=='0':
+                                        if card.selected:
+                                            self.lastcard=card.selected=self.curplant=None
+                                        else:
+                                            if self.lastcard:self.lastcard.selected=None
+                                            plantSlot_ogg.play()
+                                            card.selected=card.coolimage
+                                            self.lastcard=card
+                                            self.curplant=card.plant
+                                    else:invalidClick_ogg.play()
+                            for row in self.lawns:
+                                for lawn in row:
+                                    pos=lawn.getpos()
+                                    p=self.lawns[self.rowload[pos[1]]-1][self.colload[pos[0]]-1]
+                                    if lawn.rect.collidepoint(event.pos) and self.curplant=='displant' and p.plant:
+                                        if p.plant.sunprice!=0:self.Suns.append(Sun(p.plant.sunprice//2,pos,self))
+                                        p.displanting()
+                                        random.choice(plant_ogg).play()
                                         self.shovelactive=False
                                         self.curplant=None
-                                    else:
-                                        if self.lastcard:self.lastcard.selected=None
-                                        self.curplant='displant'
-                                        shovel_ogg.play()
-                                        self.shovelactive=True
-                                elif self.menuRect.collidepoint(event.pos):
-                                    menu.flag=True
-                                    menu.button=menu.button0
-                                    menu.draw()
-                                for card in self.Cards:
-                                    if card.rect.collidepoint(event.pos):
-                                        if self.playSun>=int(card.price) and card.curtime=='0':
-                                            if card.selected:
-                                                self.lastcard=card.selected=self.curplant=None
-                                            else:
-                                                if self.lastcard:self.lastcard.selected=None
-                                                plantSlot_ogg.play()
-                                                card.selected=card.coolimage
-                                                self.lastcard=card
-                                                self.curplant=card.plant
-                                        else:invalidClick_ogg.play()
-                                for row in self.lawns:
-                                    for lawn in row:
-                                        pos=lawn.getpos()
-                                        p=self.lawns[self.rowload[pos[1]]-1][self.colload[pos[0]]-1]
-                                        if lawn.rect.collidepoint(event.pos) and self.curplant=='displant' and p.plant:
-                                            if p.plant.sunprice!=0:self.Suns.append(Sun(p.plant.sunprice//2,pos,self))
-                                            p.displanting()
-                                            random.choice(plant_ogg).play()
+                                        break
+                                    elif lawn.rect.collidepoint(event.pos) and self.curplant=='displant':
+                                        if self.shovelactive:
+                                            self.shovelactive=False
                                             self.curplant=None
-                                        elif lawn.rect.collidepoint(event.pos) and self.curplant and self.curplant!='displant' and self.lastcard.curtime=='0' and self.playSun >= self.curplant.getprice():
-                                            if lawn.planting(self.curplant(pos,self)):
-                                                self.playSun -= self.curplant.getprice()
-                                                self.curplant=None
-                                                self.lastcard.curtime=self.lastcard.cooltime
-                                                self.lastcard.selected=None
-                                            break
-                                            
+                                        break
+                                    elif lawn.rect.collidepoint(event.pos) and self.curplant and self.curplant!='displant' and self.lastcard.curtime=='0' and self.playSun >= self.curplant.getprice():
+                                        if lawn.planting(self.curplant(pos,self)):
+                                            self.playSun -= self.curplant.getprice()
+                                            self.curplant=None
+                                            self.lastcard.curtime=self.lastcard.cooltime
+                                            self.lastcard.selected=None
+                                        break
                     elif event.type==pygame.MOUSEMOTION:
                         if self.curplant and self.curplant!='displant':self.plantpos=(event.pos[0]-30,event.pos[1]-40)
                         else:self.plantpos=(-100,-100)
                         if self.shovelactive:self.shovelpos=(event.pos[0]-30,event.pos[1]-40)
                         else:self.shovelpos=(463,9)
-
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                
                 elif event.type==pygame.KEYDOWN:
                     if event.key==pygame.K_SPACE:
                         menu.flag=True
@@ -787,6 +868,7 @@ class RWconfig:
 
     def rconfig(self):
         self.name=self.config['user']['name']
+        self.money=self.config['user']['money']
         self.gamevolume=self.config['volume']['game']
         self.menuvolume=self.config['volume']['menu']
 
@@ -803,25 +885,36 @@ class Menu:
         self.pause_ogg=getSoundEffect('sounds/pause.ogg')
         self.menu=getImageSource('images/widget/菜单栏/options_menuback.png')
         self.buttondown=False
-        self.button0=getImageSource('images/widget/菜单栏/options_backtogamebutton0.png')
-        self.button1=getImageSource('images/widget/菜单栏/options_backtogamebutton1.png')
-        self.button=self.button0
-        self.buttonRect=self.button.get_rect(topleft=(220,432))
+        self.returnimg0=getImageSource('images/widget/菜单栏/options_backtogamebutton0.png')
+        self.returnimg1=getImageSource('images/widget/菜单栏/options_backtogamebutton1.png')
+        self.returnimg=self.returnimg0
+        self.returnimgRect=self.returnimg.get_rect(topleft=(220,432))
         self.volumedown=False
         self.progress=getImageSource('images/widget/菜单栏/options_sliderslot.png')
         self.pointer=getImageSource('images/widget/菜单栏/options_sliderknob2.png')
         self.ispoint=False
         self.pointpos=(rwconfig.menuvolume/0.008775+350,208)
+        self.button=pygame.transform.scale(game.menu,(200,41))
+        self.againRect=pygame.Rect(295,333,200,41)
+        self.mainmenuRect=pygame.Rect(295,375,200,41)
+
 
     def updata(self,y=452):
         screen.blits([
             (self.menu,(188.5,51)),
-            (self.button,(220,432)),
+            (self.returnimg,(220,432)),
             (menutext.render('音乐',True,(107,109,145)),(300,210)),
             (self.progress,(350,218)),
             (self.pointer,self.pointpos),
             (tittletext.render('返回',True,(0,216,0)),(350,y))
         ])
+        if self.game.begining:
+            screen.blits([
+                (self.button,(295,333)),
+                (menutext.render('重新开始',True,(0,216,0)),(352,340)),
+                (self.button,(295,375)),
+                (menutext.render('主菜单',True,(0,216,0)),(365,383)),
+            ])
         self.pointerRect=self.pointer.get_rect(topleft=self.pointpos)
         pygame.display.flip()
 
@@ -838,19 +931,30 @@ class Menu:
                     sys.exit()
                 elif event.type==pygame.MOUSEBUTTONDOWN:
                     self.volumedown=True
-                    if self.buttonRect.collidepoint(event.pos):
+                    if self.returnimgRect.collidepoint(event.pos):
                         buttonClick_ogg.play()
                         self.buttondown=True
-                        self.button=self.button1
+                        self.returnimg=self.returnimg1
                         self.updata(454)
                     elif self.pointerRect.collidepoint(event.pos):
                         self.ispoint=True
+                    elif self.game.begining and self.againRect.collidepoint(event.pos):
+                        self.game.flag=False
+                        self.game.init()
+                        self.game.gamebegin()
+                    elif self.game.begining and self.mainmenuRect.collidepoint(event.pos):
+                        self.game.flag=False
+                        self.game.begining=False
+                        pygame.mixer.music.stop()
+                        mainmenu.flag=True
+                        mainmenu.playmusic()
+                        mainmenu.draw()
                     else:
                         self.ispoint=False
                 elif event.type==pygame.MOUSEBUTTONUP:
                     self.volumedown=False
                     self.ispoint=False
-                    if self.buttonRect.collidepoint(event.pos) and self.buttondown:
+                    if self.returnimgRect.collidepoint(event.pos) and self.buttondown:
                         self.flag=False
                         self.buttondown=False
                         curvolume='menu'
@@ -862,7 +966,7 @@ class Menu:
                     if self.volumedown and self.ispoint:
                         x=min(max(361,event.pos[0]),474)
                         self.pointpos=(x-10,208)
-                self.button=self.button0
+                self.returnimg=self.returnimg0
         if not self.game.begining:
             mainmenuBgm_ogg.set_volume(rwconfig.menuvolume)
         else:
@@ -873,7 +977,6 @@ class MainMenu:
         self.flag=True
         self.game=game
         mainmenuBgm_ogg.set_volume(rwconfig.menuvolume)
-        mainmenuBgm_ogg.play(-1)
         self.menuClick_ogg=getSoundEffect('sounds/bleep.ogg')
 
         #开屏界面
@@ -921,21 +1024,22 @@ class MainMenu:
         self.rename=getImageSource('images/主界面/rename.png')
 
         #游戏选择
+        #冒险
         self.adventure0=getImageSource('images/主界面/SelectorScreen_StartAdventure_Button.png')
         self.adventure1=getImageSource('images/主界面/SelectorScreen_StartAdventure_Highlight.png')
         self.adventure=self.adventure0
         self.adventureRect=pygame.Rect(404,55,self.adventure.get_width(),self.adventure.get_height()-25)
-
+        #小游戏
         self.small0=getImageSource('images/主界面/SelectorScreen_Survival_button.png')
         self.small1=getImageSource('images/主界面/SelectorScreen_Survival_Highlight.png')
         self.small=self.small0
         self.smallRect=pygame.Rect(405,185,self.small.get_width(),self.small.get_height()-50)
-
+        #解密
         self.challeng0=getImageSource('images/主界面/SelectorScreen_Challenges_button.png')
         self.challeng1=getImageSource('images/主界面/SelectorScreen_Challenges_Highlight.png')
         self.challeng=self.challeng0
         self.challengRect=pygame.Rect(412,275,self.challeng.get_width(),self.challeng.get_height()-45)
-
+        #生存
         self.survival0=getImageSource('images/主界面/SelectorScreen_Vasebreaker_button.png')
         self.survival1=getImageSource('images/主界面/SelectorScreen_Vasebreaker_Highlight.png')
         self.survival=self.survival0
@@ -957,7 +1061,11 @@ class MainMenu:
         self.confirm=pygame.Rect(190,331,204,44)
         self.cancel=pygame.Rect(410,331,204,44)
 
+    def playmusic(self):
+        mainmenuBgm_ogg.play(-1)
+
     def init(self):
+        self.playmusic()
         def updata():
             screen.blits([
                 (self.tittlescreen,(0,0)),
@@ -1061,6 +1169,7 @@ class MainMenu:
         return defaultimage
 
     def helper(self):
+        paper_ogg.play()
         while self.helpering:
             for event in pygame.event.get():
                 if event.type==pygame.QUIT:
@@ -1105,6 +1214,10 @@ class MainMenu:
                         self.flag=False
                         self.game.init()
                         self.game.gamebegin()
+                    if self.survivalRect.collidepoint(event.pos):
+                        self.flag=False
+                        self.game.flag=True
+                        self.game.gamebegin(True)
                     elif self.saveRect.collidepoint(event.pos):
                         self.naming=True
                         self.setname()
@@ -1120,7 +1233,7 @@ class MainMenu:
                     elif self.optionRect.collidepoint(event.pos):
                         menuClick_ogg.play()
                         menu.flag=True
-                        menu.button=menu.button0
+                        menu.returnimg=menu.returnimg0
                         menu.draw()
                 if self.name=='':
                     self.setname()
@@ -1165,7 +1278,11 @@ def getImages():
             getImageSource('images/widget/关卡/StartSet.png'),
             getImageSource('images/widget/关卡/StartPlant.png')
         ],
-        getImageSource('images/widget/遮罩.png')
+        getImageSource('images/widget/遮罩.png'),
+        getImageSource('images/widget/关卡/coin_silver.png'),
+        getImageSource('images/widget/关卡/coin_gold.png'),
+        getImageSource('images/widget/关卡/diamond.png'),
+        getImageSource('images/widget/关卡/coinbank.png')
     ]
     global plantType
     plantType=[
@@ -1198,6 +1315,11 @@ if __name__=='__main__':
     potatoActive_ogg=getSoundEffect('sounds/gravestone_rumble.ogg')
     potatoBoom_ogg=getSoundEffect('sounds/potato_mine.ogg')
     cherryBoom_ogg=getSoundEffect('sounds/cherrybomb.ogg')
+    coinfall_ogg=getSoundEffect('sounds/moneyfalls.ogg')
+    coinpick_ogg=getSoundEffect('sounds/coin.ogg')
+    diamondfall_ogg=getSoundEffect('sounds/chime.ogg')
+    diamondpick_ogg=getSoundEffect('sounds/diamond.ogg')
+    paper_ogg=getSoundEffect('sounds/paper.ogg')
     zombieEating_ogg=[
         getSoundEffect(path) for path in (
             'sounds/chomp.ogg',
