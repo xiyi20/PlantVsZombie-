@@ -262,7 +262,7 @@ class Plant:
             return True
 
 class SunFlower(Plant):
-    sunprice=25
+    sunprice=50
     image='images/向日葵/0.png'
     def __init__(self,pos,game):
         super().__init__(pos[0],pos[1],game)
@@ -359,6 +359,7 @@ class SpicyChili(Plant):
                     if zombie.blood>0:
                         zombie.blood-=self.damm
                         if zombie.blood<=0:
+                            zombie.dieimages=objectType[8]
                             zombie.dead=2
         else:
             screen.blit(self.boomimages[math.floor(self.boom_index)], (25, self.y-40))
@@ -470,6 +471,7 @@ class CherryBomb(Plant):
                     if self.boomRect.colliderect(zombie.rect) and zombie.blood>0:
                         zombie.blood-=self.damm
                         if zombie.blood<=0:
+                            zombie.dieimages=objectType[8]
                             zombie.dead=2
         else:
             if self.boomtime<=30:
@@ -481,6 +483,8 @@ class CherryBomb(Plant):
 class Zombie:
     def __init__(self,y,zombie,game,type:int) -> None:
         self.x=780
+        self.xoffset=10
+        self.yoffset=20
         self.speed=0.25
         self.blood=260
         self.sunval=0
@@ -500,7 +504,7 @@ class Zombie:
         self.game.zombiesInroad[self.row].append(zombie)
         self.images=None
         self.type=zombieType[type]
-        self.die=[objectType[7],objectType[8]]
+        self.dieimages=objectType[7]
         self.head=objectType[9]
 
     def draw(self):
@@ -533,7 +537,7 @@ class Zombie:
             if self.tick%self.fps==0:
                 self.image_index = (self.image_index + 1) % len(self.images)
             self.tick+=1
-            screen.blit(self.images[self.image_index], (self.x+10, self.y+20))
+            screen.blit(self.images[self.image_index], (self.x+self.xoffset, self.y+self.yoffset))
         else:
             if self.deadanimation:self.dieanimation()
             else:self.distory()
@@ -544,9 +548,9 @@ class Zombie:
             self.laststate=self.state
         
     def dieanimation(self):
-        if self.deadindex<len(self.die[self.dead-1]):
+        if self.deadindex<len(self.dieimages):
             curindex=math.floor(self.deadindex)
-            bodyframe=self.die[self.dead-1][curindex]
+            bodyframe=self.dieimages[curindex]
             if self.dead==1:
                 headframe=self.head[math.floor(self.deadindex+0.05)]
                 screen.blit(headframe, (self.x+60, self.y+5))
@@ -600,6 +604,19 @@ class IronBZ(Zombie):
         self.hiteffect=ironHit_ogg
         self.rect = pygame.Rect(self.x+100,self.y,20,48) 
 
+class RugbyZ(Zombie):
+    def __init__(self,y,game) -> None:
+        super().__init__(y,self,game,3)
+        self.y=y
+        self.blood=1670
+        self.speed=0.5
+        self.yoffset=0
+        self.game=game
+        self.image_index = 0
+        self.fps=4.5
+        self.dieimages=objectType[16]
+        self.rect = pygame.Rect(self.x+100,self.y,20,48)
+
 class Game:
     def __init__(self) -> None:
         self.endRect=pygame.Rect(310,241,40,40)
@@ -611,6 +628,10 @@ class Game:
         self.shovelpos=(447,-3)
         self.plantpos=(-100,-100)
         self.menu=getImageSource('images/widget/菜单栏/按钮.png')
+        self.progress1=getImageSource('images/widget/进度/FlagMeterLevelProgress.png')
+        self.progress2=pygame.transform.scale(getImageSource('images/widget/进度/FlagMeterEmpty.png'),(175,30))
+        self.progressflag1=getImageSource('images/widget/进度/FlagMeterParts1.png')
+        self.progressflag2=getImageSource('images/widget/进度/FlagMeterParts2.png')
         self.menuRect=self.menu.get_rect(topleft=(680, 0))
         self.money=rwconfig.money
         self.coinbank=objectType[15]
@@ -633,7 +654,6 @@ class Game:
         self.first=True
         self.tick=0
         self.playSun=25
-        self.curScore=0
         self.flag=True
         self.begining=False
         self.animation=False
@@ -644,7 +664,9 @@ class Game:
         self.zombierule=dict()
         self.ZombiesType=[NomalZ]
         self.zombiestime={60:1,1200:2,3000:3,4800:5,7200:7,9600:8,12000:15,15000:25}
+        self.wave=0
         self.waves=list(self.zombiestime.keys())
+        self.curScore=0
         self.endScore=sum([i for i in self.zombiestime.values()])
         self.shovelactive=False
         self.curplant=None
@@ -693,12 +715,19 @@ class Game:
                 self.animation=True
 
     def update(self):
-        screen.blit(self.background, (-220, 0))
-        screen.blit(self.plantmenu, (10, 0))
-        screen.blit(self.shovelslot, (456, 0))
-        screen.blit(self.menu, (680, 0))
-        screen.blit(scoretext.render(str(self.playSun), True, (0, 0, 0)), (26, 62))
-        screen.blit(menutext.render('菜单', True, (0, 255, 0)), (715, 8))
+        screen.blits([
+            (self.background, (-220, 0)),
+            (self.plantmenu, (10, 0)),
+            (self.shovelslot, (456, 0)),
+            (self.menu, (680, 0)),
+            (scoretext.render(str(self.playSun), True, (0, 0, 0)), (26, 62)),
+            (menutext.render('菜单', True, (0, 255, 0)), (715, 8)),
+            (self.progress2,(600,570)),
+            (self.progress1,(645,568)),
+            (self.progressflag2,(605,577)),
+            (self.progressflag1,(748,575)),
+            (wavetext.render('第 '+str(self.wave)+' 波',True,(0,216,0)),(670,579))
+        ])
         shovelpos=self.shovelpos if self.shovelactive else (447,-3)
         for car in self.Cars:
             car.draw()
@@ -727,10 +756,11 @@ class Game:
         #出僵尸，阳光
         if self.tick==3000:self.ZombiesType.append(RoadZ)
         elif self.tick==7200:self.ZombiesType.append(IronBZ)
+        elif self.tick==12000:self.ZombiesType.append(RugbyZ)
         if self.tick in self.zombiestime:
-            print('当前为第:',self.waves.index(self.tick)+1,' 波')
+            self.wave+=1
             interval=180 if self.tick<15000 else 90
-            if self.tick==self.waves[-1]:
+            if self.tick==self.waves[-1] and self.loop:
                 self.waves.append(self.waves[-1]+3000)
                 self.zombiestime[self.waves[-1]]=25
             for i in range(self.zombiestime[self.tick]):
@@ -855,7 +885,7 @@ class Game:
                 elif event.type==pygame.KEYDOWN:
                     if event.key==pygame.K_SPACE:
                         menu.flag=True
-                        menu.button=menu.button0
+                        menu.returnimg=menu.returnimg0
                         menu.draw()  
             pygame.display.flip()
             clock.tick(60)
@@ -1259,6 +1289,10 @@ def getImages():
         [
             [getImageSource(f'images/铁桶僵尸/走/{i}.png') for i in range(15)],
             [getImageSource(f'images/铁桶僵尸/吃/{i}.png') for i in range(11)]
+        ],
+        [
+            [getImageSource(f'images/大爷/走/{i}.png') for i in range(11)],
+            [getImageSource(f'images/大爷/吃/{i}.png') for i in range(10)]
         ]
     ]
     global objectType
@@ -1282,7 +1316,8 @@ def getImages():
         getImageSource('images/widget/关卡/coin_silver.png'),
         getImageSource('images/widget/关卡/coin_gold.png'),
         getImageSource('images/widget/关卡/diamond.png'),
-        getImageSource('images/widget/关卡/coinbank.png')
+        getImageSource('images/widget/关卡/coinbank.png'),
+        [getImageSource(f'images/大爷/死/{i}.png') for i in range(7)]
     ]
     global plantType
     plantType=[
@@ -1293,7 +1328,7 @@ def getImages():
         [getImageSource(f'images/火/{i}.png') for i in range(8)],
         [getImageSource(f'images/坚果/{i}.png') for i in range(16)],
         [getImageSource(f'images/土豆地雷/{i}.png') for i in range(8)],
-        [getImageSource(f'images/樱桃炸弹/{i}.png') for i in range(7)]
+        [getImageSource(f'images/樱桃炸弹/{i}.png') for i in range(7)],
     ]
 
 if __name__=='__main__':
@@ -1306,6 +1341,7 @@ if __name__=='__main__':
     pricetext = pygame.font.Font('fonts/digit.ttf', 13)
     menutext=pygame.font.Font('fonts/fzsr.ttf',22)
     tittletext=pygame.font.Font('fonts/fzsr.ttf',48)
+    wavetext=pygame.font.Font('fonts/fzxs12.ttf',12)
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption('Plant Vs Zombie α')
