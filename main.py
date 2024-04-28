@@ -36,10 +36,11 @@ class Lawn:
             self.plant=None
 
 class Card:
-    def __init__(self,img,plant,price,cooltime,game,x=200) -> None:
+    def __init__(self,img,plant,price,cooltime,game,x,y=7) -> None:
         self.img=img
         self.plant=plant
         self.selected=None
+        self.active=False
         self.price=str(price)
         self.coolimage=objectType[11]
         self.cooltime=str(cooltime)
@@ -47,18 +48,19 @@ class Card:
         self.curtime='0'
         self.game=game
         self.x=x
-        self.rect=pygame.Rect(x,7,50,72)
+        self.y=y
 
     def draw(self):
+        self.rect=pygame.Rect(self.x,self.y,50,72)
         plantcard=pygame.transform.scale(getImageSource('images/widget/卡槽.png'),(50,72))
-        plantimage=pygame.transform.scale(getImageSource(self.img),(30,30))
-        screen.blit(plantcard,(self.x,7))
-        screen.blit(plantimage,(self.x+10,25))
-        color=(255, 0, 0) if int(self.price)>self.game.playSun else (0, 0, 0)
-        screen.blit(pricetext.render(self.price, True, color),(self.x+2,62))
-        if self.selected:screen.blit(self.selected,(self.x,8))
+        plantimage=pygame.transform.scale(getImageSource(self.img),(35,35))
+        screen.blit(plantcard,(self.x,self.y))
+        screen.blit(plantimage,(self.x+7,self.y+15))
+        color=(255, 0, 0) if int(self.price)>self.game.playSun and not self.game.selectp else (0, 0, 0)
+        screen.blit(pricetext.render(self.price, True, color),(self.x+2,self.y+55))
+        if self.selected:screen.blit(self.selected,(self.x,self.y+1))
         if self.curtime!='0':
-            screen.blit(pygame.transform.scale(self.coolimage,(50,int(self.curtime)*self.interval)),(self.x,7))
+            screen.blit(pygame.transform.scale(self.coolimage,(50,int(self.curtime)*self.interval)),(self.x,self.y))
             self.curtime=str(int(self.curtime)-1)
 
 class Coin:
@@ -195,21 +197,24 @@ class Sun(Object):
         self.game.Suns.remove(self)
 
 class Peas(Object):
-    def __init__(self,x,y,game,damm=15) -> None:
+    def __init__(self,x,y,game,damm=20) -> None:
         super().__init__()
         self.x=x+35
         self.y=y+5
         self.game=game
         self.damm=damm
         self.speed=4
-        self.image=objectType[2]
-        self.rect=pygame.Rect(self.x,self.y,self.image.get_width(),140)
+        self.images=objectType[2]
+        self.rect=pygame.Rect(self.x,self.y,23,10)
         random.choice(shoot_ogg).play()
 
     def draw(self):
-        screen.blit(self.image,(self.x,self.y))
+        if self.tick%10==0:
+            self.image_index = (self.image_index+1) % len(self.images)
+        screen.blit(self.images[self.image_index], (self.x, self.y))
+        self.tick+=1
         self.x+=self.speed
-        self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
+        self.rect=pygame.Rect(self.x, self.y, self.images[0].get_width(),10)
         for zombie in game.zombiesInroad[game.rowload[self.y-5]]:
             if zombie.rect.colliderect(self.rect) and zombie.blood>0:
                 zombie.blood -= self.damm
@@ -328,6 +333,35 @@ class Repeater(Plant):
                         self.game.Peass.append(Peas(self.x,self.y,self.game,self.damm))
                         break
 
+class GatlingPea(Plant):
+    sunprice=450
+    cooling=3000
+    image='images/机枪射手/0.png'
+    def __init__(self,pos,game) -> None:
+        super().__init__(pos[0],pos[1],game)
+        self.x = pos[0]
+        self.y = pos[1]
+        self.game=game
+        self.row=self.game.rowload[self.y]
+        self.damm=20
+        self.image_index = 0
+        self.images = plantType[9]
+        self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
+
+    def draw(self):
+        if self.tick%4==0:
+            self.image_index = (self.image_index+1) % len(self.images)
+        screen.blit(self.images[self.image_index], (self.x+13, self.y-5))
+        self.tick+=1
+
+    def shot(self):
+        if game.zombiesInroad[self.row]:
+            for zombie in game.zombiesInroad[self.row]:
+                if self.x-30<=zombie.x<=700:
+                    if self.tick%self.interval in [0,10,20,30]:
+                        self.game.Peass.append(Peas(self.x,self.y,self.game,self.damm))
+                        break
+
 class SpicyChili(Plant):
     sunprice=125
     cooling=3000
@@ -379,7 +413,7 @@ class NutsWall(Plant):
         self.row=game.rowload[self.y]
         self.col=game.colload[self.x]
         self.image_index=0
-        self.blood=4000
+        self.blood=5000
         self.images= plantType[5]
         self.rect=pygame.Rect(self.x,self.y,self.images[0].get_width(),self.images[0].get_height())
 
@@ -423,7 +457,7 @@ class PotatoMine(Plant):
                     self.booming=True
                     potatoBoom_ogg.play()
                     for zombie in self.game.zombiesInroad[self.row]:
-                        if -25<zombie.x-self.x+30<25:tem.append(zombie)
+                        if -45<zombie.x-self.x<45:tem.append(zombie)
                     for i in tem:
                         if i.blood>0:
                             i.blood-=self.damm
@@ -460,6 +494,7 @@ class CherryBomb(Plant):
         self.boomtime=0
         self.boomimage=objectType[6]
         self.boomRect=pygame.Rect(self.x-70,self.y-30,200,130)
+
     def draw(self):
         if not self.booming:
             screen.blit(self.images[math.floor(self.image_index)], (self.x-10,self.y-5))
@@ -479,6 +514,30 @@ class CherryBomb(Plant):
                 self.boomtime+=1
             else:
                 self.game.lawns[self.row-1][self.col-1].displanting()
+
+class Torchwood(Plant):
+    sunprice=175
+    image='images/火炬树桩/0.png'
+    def __init__(self,pos,game) -> None:
+        super().__init__(pos[0], pos[1],game)
+        self.x=pos[0]
+        self.y=pos[1]
+        self.game=game
+        self.row=game.rowload[self.y]
+        self.col=game.colload[self.x]
+        self.image_index=0
+        self.images=plantType[8]
+        self.rect=pygame.Rect(self.x+20,self.y,55,80)
+
+    def draw(self):
+        if self.tick%4==0:
+            self.image_index = (self.image_index+1) % len(self.images)
+        screen.blit(self.images[self.image_index], (self.x+16, self.y-10))
+        self.tick+=1
+        for peas in self.game.Peass:
+            if self.rect.colliderect(peas.rect):
+                peas.images=objectType[17]
+                peas.damm==65
 
 class Zombie:
     def __init__(self,y,zombie,game,type:int) -> None:
@@ -632,6 +691,8 @@ class Game:
         self.progress2=pygame.transform.scale(getImageSource('images/widget/进度/FlagMeterEmpty.png'),(175,30))
         self.progressflag1=getImageSource('images/widget/进度/FlagMeterParts1.png')
         self.progressflag2=getImageSource('images/widget/进度/FlagMeterParts2.png')
+        self.chooseseed=pygame.transform.scale(getImageSource('images/widget/关卡/SeedChooser_Background.png'),(475,513))
+        self.ready=getImageSource('images/widget/关卡/SeedChooser_Button.png')
         self.menuRect=self.menu.get_rect(topleft=(680, 0))
         self.money=rwconfig.money
         self.coinbank=objectType[15]
@@ -646,8 +707,11 @@ class Game:
             'images/火爆辣椒/0.png':SpicyChili,
             'images/坚果/0.png':NutsWall,
             'images/土豆地雷/0.png':PotatoMine,
-            'images/樱桃炸弹/0.png':CherryBomb
+            'images/樱桃炸弹/0.png':CherryBomb,
+            'images/火炬树桩/0.png':Torchwood,
+            'images/机枪射手/0.png':GatlingPea
         }
+        self.gameplantcards=dict()
         self.init() 
 
     def init(self):
@@ -655,6 +719,7 @@ class Game:
         self.tick=0
         self.playSun=25
         self.flag=True
+        self.selectp=True
         self.begining=False
         self.animation=False
         self.alpha=0
@@ -663,7 +728,7 @@ class Game:
         self.wonpos=[550,350]
         self.zombierule=dict()
         self.ZombiesType=[NomalZ]
-        self.zombiestime={60:1,1200:2,3000:3,4800:5,7200:7,9600:8,12000:15,15000:25}
+        self.zombiestime={120:1,1800:2,3600:3,5400:5,7800:7,10200:8,13200:15,18000:25}
         self.wave=0
         self.waves=list(self.zombiestime.keys())
         self.curScore=0
@@ -674,10 +739,6 @@ class Game:
         self.zombiesInroad={1:[],2:[],3:[],4:[],5:[]}
         self.plantsInroad={1:[],2:[],3:[],4:[],5:[]}
         self.Cards=[]
-        i=0
-        for key,value in self.plantcards.items():
-            self.Cards.append(Card(key,value,value.getprice(),value.getcooltime(),self,90+50*i))
-            i+=1
         self.Peass=[]
         self.lawns = [[Lawn(20 + (82 * x), 95 + (96 * y),self) for x in range(9)] for y in range(5)]
         self.Plants = []
@@ -686,6 +747,44 @@ class Game:
         self.Cars=[Car(-30,y+35,self) for y in self.rowload.keys()]
         self.Coins=[]
         self.paused = False 
+
+    def selectplant(self):
+        curcards=0
+        pygame.mixer.music.load('sounds/bgm/Choose Your Seeds-Laura Shigihara.mp3')
+        pygame.mixer.music.play(-1)
+        col,row=0,0
+        for key,value in self.plantcards.items():
+            if col==9:row+=1
+            self.Cards.append(Card(key,value,value.getprice(),value.getcooltime(),self,13+50*(col%9),122+72*row))
+            col+=1
+        while self.selectp:
+            self.update()
+            pygame.display.flip()
+            for event in pygame.event.get():
+                if event.type==pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type==pygame.MOUSEBUTTONDOWN:
+                    for card in self.Cards:
+                        if card.rect.collidepoint(event.pos):
+                            if card.active:
+                                card.x=card.lastx
+                                card.y=card.lasty
+                                card.active=False
+                                curcards-=1
+                            elif not card.active and curcards<7:
+                                card.lastx=card.x
+                                card.lasty=card.y
+                                card.x=90+50*curcards
+                                card.y=7
+                                card.active=True
+                                curcards+=1
+                    if pygame.Rect(320,558,156,42).collidepoint(event.pos):
+                        tem=[]
+                        for card in self.Cards:
+                            if card.y==7:tem.append(card)
+                        self.Cards=tem
+                        self.selectp=False
 
     def win(self):
         if self.animation:
@@ -731,6 +830,14 @@ class Game:
         shovelpos=self.shovelpos if self.shovelactive else (447,-3)
         for car in self.Cars:
             car.draw()
+        screen.blit(self.coinbank,(35,570))
+        screen.blit(scoretext.render(str(self.money), True, (255, 215, 0)), (80, 578))
+        if self.selectp:
+            screen.blits([
+                (self.chooseseed,(0,87)),
+                (self.ready,(300,550)),
+                (menutext.render('一起摇滚吧!',True,(255,215,0)),(320,558))
+            ])
         for card in self.Cards:
             card.draw()
         for plant in self.Plants:
@@ -745,23 +852,21 @@ class Game:
                     zombie.draw()
         for peas in self.Peass:
             peas.draw()
-        screen.blit(self.coinbank,(35,570))
-        screen.blit(scoretext.render(str(self.money), True, (255, 215, 0)), (80, 578))
         for coin in self.Coins:
             coin.draw()
         screen.blit(self.shovel,shovelpos)
         if self.curplant and self.curplant!='displant':screen.blit(self.curplant.getimage(),self.plantpos)  
-
+        
     def logical(self):
         #出僵尸，阳光
         if self.tick==3000:self.ZombiesType.append(RoadZ)
         elif self.tick==7200:self.ZombiesType.append(IronBZ)
-        elif self.tick==12000:self.ZombiesType.append(RugbyZ)
+        elif self.tick==15000:self.ZombiesType.append(RugbyZ)
         if self.tick in self.zombiestime:
             self.wave+=1
             interval=180 if self.tick<15000 else 90
             if self.tick==self.waves[-1] and self.loop:
-                self.waves.append(self.waves[-1]+3000)
+                self.waves.append(self.waves[-1]+4800)
                 self.zombiestime[self.waves[-1]]=25
             for i in range(self.zombiestime[self.tick]):
                 self.zombierule[self.tick+interval*i]=1
@@ -799,6 +904,7 @@ class Game:
     def gamebegin(self,loop=False):
         self.loop=loop
         mainmenuBgm_ogg.stop()
+        if self.selectp:self.selectplant()
         self.begining=True
         self.readysetplant_ogg.play()
         for img in objectType[10]:
@@ -874,6 +980,10 @@ class Game:
                                             self.lastcard.curtime=self.lastcard.cooltime
                                             self.lastcard.selected=None
                                         break
+                        elif event.button==3:
+                            if self.curplant=='displant' and self.shovelactive:
+                                self.shovelactive=False
+                                self.curplant=None
                     elif event.type==pygame.MOUSEMOTION:
                         if self.curplant and self.curplant!='displant':self.plantpos=(event.pos[0]-30,event.pos[1]-40)
                         else:self.plantpos=(-100,-100)
@@ -1299,7 +1409,7 @@ def getImages():
     objectType=[
         getImageSource('images/widget/小推车.png'),
         [getImageSource(f'images/太阳/{i}.png') for i in range(29)],
-        getImageSource('images/豌豆射手/豆.png'),
+        [getImageSource('images/豆/普通/0.png')],
         getImageSource('images/土豆地雷/爆炸.gif'),
         getImageSource('images/土豆地雷/土豆泥.gif'),
         [getImageSource('images/土豆地雷/在地下.gif')],
@@ -1317,7 +1427,8 @@ def getImages():
         getImageSource('images/widget/关卡/coin_gold.png'),
         getImageSource('images/widget/关卡/diamond.png'),
         getImageSource('images/widget/关卡/coinbank.png'),
-        [getImageSource(f'images/大爷/死/{i}.png') for i in range(7)]
+        [getImageSource(f'images/大爷/死/{i}.png') for i in range(7)],
+        [getImageSource(f'images/豆/火豆/{i}.png') for i in range(2)],
     ]
     global plantType
     plantType=[
@@ -1329,6 +1440,8 @@ def getImages():
         [getImageSource(f'images/坚果/{i}.png') for i in range(16)],
         [getImageSource(f'images/土豆地雷/{i}.png') for i in range(8)],
         [getImageSource(f'images/樱桃炸弹/{i}.png') for i in range(7)],
+        [getImageSource(f'images/火炬树桩/{i}.png') for i in range(9)],
+        [getImageSource(f'images/机枪射手/{i}.png') for i in range(13)],
     ]
 
 if __name__=='__main__':
