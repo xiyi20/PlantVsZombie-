@@ -20,12 +20,19 @@ class Lawn:
     def getpos(self):
         return (self.x,self.y)
     
-    def planting(self, plant):
-        if not self.plant:
-            self.plant=plant
-            self.game.Plants.append(plant)
-            self.game.plantsInroad[self.row].append(plant)
+    def planting(self,plant,pos):
+        def setplant():
+            self.plant=plant(pos,self.game)
+            self.game.Plants.append(self.plant)
+            self.game.plantsInroad[self.row].append(self.plant)
+        if not self.plant and plant.getalone():
+            setplant()
             random.choice(plant_ogg).play()
+            return True
+        elif self.plant and self.plant.update==plant:
+            self.game.Plants.remove(self.plant)
+            self.game.plantsInroad[self.row].remove(self.plant)
+            setplant()
             return True
         return False
 
@@ -228,11 +235,13 @@ class Peas(Object):
 class Plant:
     sunprice=0
     cooling=450
+    alone=True
     image=None
     def __init__(self,col,row,game) -> None:
         self.blood=300
         self.col=game.colload[col]
         self.row=game.rowload[row]
+        self.update=None
         self.rect=None
         self.tick=0
         self.interval=80
@@ -248,6 +257,10 @@ class Plant:
     @classmethod
     def getcooltime(cls):
         return cls.cooling
+    
+    @classmethod
+    def getalone(cls):
+        return cls.alone
 
     def shot(self):
         pass
@@ -310,7 +323,7 @@ class PeasShoter(Plant):
                     if self.tick%self.interval==0:
                         self.game.Peass.append(Peas(self.x,self.y,self.game,self.damm))
                         break
-                
+               
 class Repeater(Plant):
     sunprice=200
     image='images/双重射手/0.png'
@@ -321,6 +334,7 @@ class Repeater(Plant):
         self.game=game
         self.row=self.game.rowload[self.y]
         self.damm=20
+        self.update=GatlingPea
         self.image_index = 0
         self.images = plantType[2]
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
@@ -334,8 +348,9 @@ class Repeater(Plant):
                         break
 
 class GatlingPea(Plant):
-    sunprice=450
+    sunprice=250
     cooling=3000
+    alone=False
     image='images/机枪射手/0.png'
     def __init__(self,pos,game) -> None:
         super().__init__(pos[0],pos[1],game)
@@ -400,7 +415,7 @@ class SpicyChili(Plant):
             self.boom_index+=0.25
             if self.boom_index==len(self.boomimages):
                 self.game.lawns[self.row-1][self.col-1].displanting()         
-            
+         
 class NutsWall(Plant):
     sunprice=50
     cooling=1800
@@ -632,7 +647,7 @@ class Zombie:
         self.game.zombiesInroad[game.loadzombies[self.y]].remove(self)
         self.game.curScore+=1
         self.game.wonpos=[self.x+30,self.y+90]
-        
+    
 class NomalZ(Zombie):
     def __init__(self,y,game) -> None:
         super().__init__(y,self,game,0)
@@ -728,7 +743,7 @@ class Game:
         self.wonpos=[550,350]
         self.zombierule=dict()
         self.ZombiesType=[NomalZ]
-        self.zombiestime={120:1,1800:2,3600:3,5400:5,7800:7,10200:8,13200:15,18000:25}
+        self.zombiestime={120:1,1800:2,3600:3,5400:5,7800:7,10200:8,13200:15,17400:25}
         self.wave=0
         self.waves=list(self.zombiestime.keys())
         self.curScore=0
@@ -779,6 +794,7 @@ class Game:
                                 card.y=7
                                 card.active=True
                                 curcards+=1
+                            else:invalidClick_ogg.play()
                     if pygame.Rect(320,558,156,42).collidepoint(event.pos):
                         tem=[]
                         for card in self.Cards:
@@ -974,13 +990,16 @@ class Game:
                                             self.curplant=None
                                         break
                                     elif lawn.rect.collidepoint(event.pos) and self.curplant and self.curplant!='displant' and self.lastcard.curtime=='0' and self.playSun >= self.curplant.getprice():
-                                        if lawn.planting(self.curplant(pos,self)):
-                                            self.playSun -= self.curplant.getprice()
+                                        if lawn.planting(self.curplant,pos):
+                                            self.playSun-=self.curplant.getprice()
                                             self.curplant=None
                                             self.lastcard.curtime=self.lastcard.cooltime
                                             self.lastcard.selected=None
                                         break
                         elif event.button==3:
+                            for zombie in self.Zombies:
+                                if zombie.rect.collidepoint(event.pos):
+                                    zombie.dead=1
                             if self.curplant=='displant' and self.shovelactive:
                                 self.shovelactive=False
                                 self.curplant=None
@@ -1185,6 +1204,12 @@ class MainMenu:
         self.survival=self.survival0
         self.survivalRect=pygame.Rect(450,340,self.survival.get_width(),self.survival.get_height()-45)
 
+        #商店
+        self.shop0=getImageSource('images/主界面/SelectorScreen_Store.png')
+        self.shop1=getImageSource('images/主界面/SelectorScreen_StoreHighlight.png')
+        self.shop=self.shop0
+        self.shopRect=self.shop.get_rect(topleft=(400,480))
+
         #帮助
         self.helpering=True
         self.words=getImageSource('images/主界面/says.png')
@@ -1253,6 +1278,7 @@ class MainMenu:
             (self.small,(405,168)),
             (self.challeng,(412,255)),
             (self.survival,(410,325)),
+            (self.shop,(400,480)),
             (self.flower1,(682,415)),
             (self.flower2,(637,435)),
             (self.flower3,(735,457)),
@@ -1338,7 +1364,7 @@ class MainMenu:
                 if event.type==pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                
+
                 elif event.type == pygame.MOUSEMOTION:
                     self.adventure = self.updatabutton(self.adventureRect, self.adventure, self.adventure0, self.adventure1,event.pos)
                     self.small = self.updatabutton(self.smallRect, self.small, self.small0, self.small1,event.pos)
@@ -1348,6 +1374,7 @@ class MainMenu:
                     self.help = self.updatabutton(self.helpRect, self.help, self.help0, self.help1,event.pos)
                     self.exit = self.updatabutton(self.exitRect, self.exit, self.exit0, self.exit1,event.pos)
                     self.save = self.updatabutton(self.saveRect, self.save, self.save0, self.save1,event.pos)
+                    self.shop = self.updatabutton(self.shopRect, self.shop, self.shop0, self.shop1,event.pos)
 
                 elif event.type==pygame.MOUSEBUTTONDOWN:
                     if self.adventureRect.collidepoint(event.pos):
@@ -1357,6 +1384,7 @@ class MainMenu:
                     if self.survivalRect.collidepoint(event.pos):
                         self.flag=False
                         self.game.flag=True
+                        if self.game.won:self.game.init()
                         self.game.gamebegin(True)
                     elif self.saveRect.collidepoint(event.pos):
                         self.naming=True
