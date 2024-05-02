@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'main.py'
+      - 'source/**'
       - '.github/workflows/AutoCompilation.yml'
       
 jobs:
@@ -25,28 +25,49 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
           pip install pygame
+          pip install pyinstaller
+
+      - name: Init Files(Code)
+        run: |
+          mkdir temp1\SourceCode\src
+          mkdir temp1\SourceCode\img
+          mkdir temp1\SourceCode\font
+          mkdir temp1\SourceCode\aud
+          xcopy /E /I src\* temp1\SourceCode\src
+          xcopy /E /I img\* temp1\SourceCode\img
+          xcopy /E /I aud\* temp1\SourceCode\aud
+          xcopy /E /I font\* temp1\SourceCode\font
+          copy config.json temp1\SourceCode
+          copy LICENSE temp1\SourceCode
+          copy README.md temp1\SourceCode
+
+      - name: Upload SourceCode
+        uses: actions/upload-artifact@v4
+        with:
+          name: SourceCode
+          path: temp1\SourceCode
 
       - name: Create Executable
         run: |
-          pyinstaller --onefile --windowed --icon 'images\icon.ico' main.py
+          cd src
+          pyinstaller --name=temp --onefile --windowed --icon '..\img\icon.ico' Card.py Coin.py Const.py Game.py Lawn.py Main.py Menu.py Object.py Plant.py RWconfig.py Source.py Zombie.py
+          cd ..
 
-      - name: Init Files
+      - name: Init Files(Gemini)
         run: |
-          mkdir temp\PVZ
-          mkdir temp\PVZ\fonts
-          mkdir temp\PVZ\images
-          mkdir temp\PVZ\sounds
-          copy dist\main.exe temp\PVZ
-          copy config.json temp\PVZ
-          xcopy /E /I fonts\* temp\PVZ\fonts
-          xcopy /E /I images\* temp\PVZ\images
-          xcopy /E /I sounds\* temp\PVZ\sounds
-          
+          mkdir temp2\PVZ\img
+          mkdir temp2\PVZ\font
+          mkdir temp2\PVZ\aud
+          xcopy /E /I img\* temp2\PVZ\img
+          xcopy /E /I aud\* temp2\PVZ\aud
+          xcopy /E /I font\* temp2\PVZ\font
+          copy config.json temp2\PVZ
+          copy src\dist\temp.exe 'temp2\PVZ\Plant Vs Zombie α.exe'
+
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PVZ-Artifacts
-          path: temp
+          name: Gemini-Artifacts
+          path: temp2
