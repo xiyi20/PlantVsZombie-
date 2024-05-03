@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'source/**'
+      - 'src/**'
       - '.github/workflows/AutoCompilation.yml'
       
 jobs:
@@ -45,7 +45,7 @@ jobs:
       - name: Upload SourceCode
         uses: actions/upload-artifact@v4
         with:
-          name: SourceCode
+          name: Source Code
           path: temp1\SourceCode
 
       - name: Create Executable
@@ -69,5 +69,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Gemini-Artifacts
+          name: Plant Vs Zombie α
           path: temp2
