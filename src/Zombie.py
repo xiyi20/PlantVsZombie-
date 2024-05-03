@@ -7,33 +7,33 @@ from Source import objectType, zombieType, screen, splat_ogg, zombie_falling_ogg
 
 
 class Zombie:
-    def __init__(self, y, zombie, gameobj, type: int) -> None:
+    def __init__(self, y, zombie, gameObj, type: int) -> None:
         self.y = None
         self.x = Const.ZOMBIE_X
-        self.xoffset = 10
-        self.yoffset = 20
+        self.xOffset = 10
+        self.yOffset = 20
         self.speed = 0.25
         self.blood = Const.NOMALZOMBIE_BLOOD
-        self.sunval = 0
-        self.game = gameobj
+        self.sunVal = 0
+        self.game = gameObj
         self.damm = 100
         self.tick = 0
         self.dead = 0
-        self.deadanimation = True
-        self.deadindex = 0
-        self.row = gameobj.loadzombies[y]
+        self.deadAnimation = True
+        self.deadIndex = 0
+        self.row = gameObj.zombieRoad[y]
         self.eating = None
         self.eat_count = 0
         self.state = 'walk'
         self.fps = 4
         self.rect = None
-        self.hiteffect = splat_ogg
-        self.laststate = None
+        self.hitEffect = splat_ogg
+        self.lastState = None
         self.game.zombiesInroad[self.row].append(zombie)
         self.images = None
         self.image_index = None
         self.type = zombieType[type]
-        self.dieimages = objectType[7]
+        self.dieImages = objectType[7]
         self.head = objectType[9]
 
     def draw(self):
@@ -68,34 +68,34 @@ class Zombie:
                 self.image_index = (self.image_index + 1) % len(self.images)
             self.tick += 1
             screen.blit(self.images[self.image_index],
-                        (self.x + self.xoffset, self.y + self.yoffset))
+                        (self.x + self.xOffset, self.y + self.yOffset))
         else:
-            if self.deadanimation:
+            if self.deadAnimation:
                 self.dieanimation()
             else:
-                self.distory()
+                self.destroy()
 
     def resetstate(self):
-        if self.laststate != self.state:
+        if self.lastState != self.state:
             self.image_index = 0
-            self.laststate = self.state
+            self.lastState = self.state
 
     def dieanimation(self):
-        if self.deadindex < len(self.dieimages):
-            curindex = math.floor(self.deadindex)
-            bodyframe = self.dieimages[curindex]
+        if self.deadIndex < len(self.dieImages):
+            curIndex = math.floor(self.deadIndex)
+            bodyFrame = self.dieImages[curIndex]
             if self.dead == 1:
-                headframe = self.head[math.floor(self.deadindex + 0.05)]
-                screen.blit(headframe, (self.x + 60, self.y + 5))
-                screen.blit(bodyframe, (self.x + 10, self.y + 20))
+                headFrame = self.head[math.floor(self.deadIndex + 0.05)]
+                screen.blit(headFrame, (self.x + 60, self.y + 5))
+                screen.blit(bodyFrame, (self.x + 10, self.y + 20))
             elif self.dead == 2:
-                screen.blit(bodyframe, (self.x + 70, self.y + 55))
-            self.deadindex += 0.15
+                screen.blit(bodyFrame, (self.x + 70, self.y + 55))
+            self.deadIndex += 0.15
         else:
-            self.distory()
+            self.destroy()
             random.choice(zombie_falling_ogg).play()
 
-    def distory(self):
+    def destroy(self):
         from Object import Sun
         choose = random.randrange(100)
         if 0 < choose <= 10:
@@ -107,30 +107,30 @@ class Zombie:
             elif 0 < choose <= 3:
                 money = Diamond(self.x + 60, self.y + 120, self.game)
             self.game.Coins.append(money)
-        if self.sunval != 0:
+        if self.sunVal != 0:
             self.game.Suns.append(
-                Sun(self.sunval, (self.x + 45, self.y + 80), self.game))
+                Sun(self.sunVal, (self.x + 45, self.y + 80), self.game))
         self.game.Zombies.remove(self)
-        self.game.zombiesInroad[self.game.loadzombies[self.y]].remove(self)
+        self.game.zombiesInroad[self.game.zombieRoad[self.y]].remove(self)
         self.game.curScore += 1
-        self.game.wonpos = [self.x + 30, self.y + 90]
+        self.game.wonPos = [self.x + 30, self.y + 90]
 
 
 class NomalZ(Zombie):
-    def __init__(self, y, gameobj) -> None:
-        super().__init__(y, self, gameobj, 0)
+    def __init__(self, y, gameObj) -> None:
+        super().__init__(y, self, gameObj, 0)
         self.y = y
-        self.game = gameobj
+        self.game = gameObj
         self.image_index = 0
         self.fps = 4.5
         self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
 
 
 class RoadZ(Zombie):
-    def __init__(self, y, gameobj) -> None:
-        super().__init__(y, self, gameobj, 1)
+    def __init__(self, y, gameObj) -> None:
+        super().__init__(y, self, gameObj, 1)
         self.y = y
-        self.game = gameobj
+        self.game = gameObj
         self.blood = Const.ROADZOMBIE_BLOOD
         self.fps = 5.5
         self.image_index = 0
@@ -138,26 +138,26 @@ class RoadZ(Zombie):
 
 
 class IronBZ(Zombie):
-    def __init__(self, y, gameobj) -> None:
-        super().__init__(y, self, gameobj, 2)
+    def __init__(self, y, gameObj) -> None:
+        super().__init__(y, self, gameObj, 2)
         self.y = y
-        self.game = gameobj
+        self.game = gameObj
         self.blood = Const.IRONZOMBIE_BLOOD
         self.fps = 5.5
         self.image_index = 0
-        self.hiteffect = ironHit_ogg
+        self.hitEffect = ironHit_ogg
         self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
 
 
 class RugbyZ(Zombie):
-    def __init__(self, y, gameobj) -> None:
-        super().__init__(y, self, gameobj, 3)
+    def __init__(self, y, gameObj) -> None:
+        super().__init__(y, self, gameObj, 3)
         self.y = y
         self.blood = Const.RUGBYZOMBIE_BLOOD
         self.speed = 0.5
-        self.yoffset = 0
-        self.game = gameobj
+        self.yOffset = 0
+        self.game = gameObj
         self.image_index = 0
         self.fps = 4.5
-        self.dieimages = objectType[16]
+        self.dieImages = objectType[16]
         self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)

@@ -6,5 +6,6 @@ from Menu import Menu, MainMenu
 if __name__ == '__main__':
     Source.game = Game()
     Source.menu = Menu(Source.game)
-    Source.mainmenu = MainMenu(Source.game)
-    Source.mainmenu.init()
+    Source.mainMenu = MainMenu(Source.game)
+    Source.mainMenu.init()
+

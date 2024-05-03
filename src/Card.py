@@ -1,10 +1,10 @@
 import pygame
 import Const
-from Source import objectType, getImageSource, pricetext, screen
+from Source import objectType, getImageSource, priceText, screen
 
 
 class Card:
-    def __init__(self, img, plant, price, cooltime, gameobj, x, y=7) -> None:
+    def __init__(self, img, plant, price, cooltime, gameObj, x, y=7) -> None:
         self.rect = None
         self.img = img
         self.plant = plant
@@ -14,8 +14,8 @@ class Card:
         self.coolimage = objectType[11]
         self.cooltime = str(cooltime)
         self.interval = Const.CARD_HEIGHT / cooltime
-        self.curtime = '0'
-        self.game = gameobj
+        self.curTime = '0'
+        self.game = gameObj
         self.x = x
         self.y = y
 
@@ -29,12 +29,12 @@ class Card:
         screen.blit(plantcard, (self.x, self.y))
         screen.blit(plantimage, (self.x + 7, self.y + 15))
         color = (255, 0, 0) if int(
-            self.price) > self.game.playSun and not self.game.selectp else (0, 0, 0)
-        screen.blit(pricetext.render(self.price, True, color),
+            self.price) > self.game.playSun and not self.game.selectFlag else (0, 0, 0)
+        screen.blit(priceText.render(self.price, True, color),
                     (self.x + 2, self.y + 55))
         if self.selected:
             screen.blit(self.selected, (self.x, self.y + 1))
-        if self.curtime != '0':
-            screen.blit(pygame.transform.scale(self.coolimage, (50, int(self.curtime) * self.interval)),
+        if self.curTime != '0':
+            screen.blit(pygame.transform.scale(self.coolimage, (50, int(self.curTime) * self.interval)),
                         (self.x, self.y))
-            self.curtime = str(int(self.curtime) - 1)
+            self.curTime = str(int(self.curTime) - 1)

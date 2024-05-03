@@ -3,7 +3,7 @@ import pygame
 import pygame.mixer
 from pygame.locals import K_a, K_z
 from RWconfig import rwconfig
-from Source import getImageSource, getSoundEffect, screen, invalidClick_ogg, menutext, buttonClick_ogg, mainmenuBgm_ogg, paper_ogg, tittletext, menuClick_ogg
+from Source import getImageSource, getSoundEffect, screen, invalidClick_ogg, menuText, buttonClick_ogg, mainMenuBgm_ogg, paper_ogg, tittleText, menuClick_ogg
 
 
 class Menu:
@@ -12,97 +12,97 @@ class Menu:
         self.game = game
         self.pause_ogg = getSoundEffect('aud/pause.ogg')
         self.menu = getImageSource('img/widget/菜单栏/options_menuback.png')
-        self.buttondown = False
-        self.returnimg0 = getImageSource(
+        self.buttonDown = False
+        self.returnImg0 = getImageSource(
             'img/widget/菜单栏/options_backtogamebutton0.png')
-        self.returnimg1 = getImageSource(
+        self.returnImg1 = getImageSource(
             'img/widget/菜单栏/options_backtogamebutton1.png')
-        self.returnimg = self.returnimg0
-        self.returnimgRect = self.returnimg.get_rect(topleft=(220, 432))
-        self.volumedown = False
+        self.returnImg = self.returnImg0
+        self.returnImgRect = self.returnImg.get_rect(topleft=(220, 432))
+        self.volumeDown = False
         self.progress = getImageSource('img/widget/菜单栏/options_sliderslot.png')
         self.pointer = getImageSource('img/widget/菜单栏/options_sliderknob2.png')
-        self.ispoint = False
-        self.pointpos = (rwconfig.menuvolume / 0.008775 + 350, 208)
+        self.isPoint = False
+        self.pointPos = (rwconfig.menuvolume / 0.008775 + 350, 208)
         self.button = pygame.transform.scale(game.menu, (200, 41))
         self.againRect = pygame.Rect(295, 333, 200, 41)
-        self.mainmenuRect = pygame.Rect(295, 375, 200, 41)
+        self.mainMenuRect = pygame.Rect(295, 375, 200, 41)
 
-    def updata(self, y=452):
+    def update(self, y=452):
         screen.blits([
             (self.menu, (188.5, 51)),
-            (self.returnimg, (220, 432)),
-            (menutext.render('音乐', True, (107, 109, 145)), (300, 210)),
+            (self.returnImg, (220, 432)),
+            (menuText.render('音乐', True, (107, 109, 145)), (300, 210)),
             (self.progress, (350, 218)),
-            (self.pointer, self.pointpos),
-            (tittletext.render('返回', True, (0, 216, 0)), (350, y))
+            (self.pointer, self.pointPos),
+            (tittleText.render('返回', True, (0, 216, 0)), (350, y))
         ])
-        if self.game.begining:
+        if self.game.started:
             screen.blits([
                 (self.button, (295, 333)),
-                (menutext.render('重新开始', True, (0, 216, 0)), (352, 340)),
+                (menuText.render('重新开始', True, (0, 216, 0)), (352, 340)),
                 (self.button, (295, 375)),
-                (menutext.render('主菜单', True, (0, 216, 0)), (365, 383)),
+                (menuText.render('主菜单', True, (0, 216, 0)), (365, 383)),
             ])
-        self.pointerRect = self.pointer.get_rect(topleft=self.pointpos)
+        self.pointerRect = self.pointer.get_rect(topleft=self.pointPos)
         pygame.display.flip()
 
     def draw(self):
-        from Source import mainmenu
-        self.mainmenuobj = mainmenu
-        if self.game.begining:
-            self.pointpos = (rwconfig.gamevolume / 0.008775 + 350, 208)
+        from Source import mainMenu
+        self.mainMenuObj = mainMenu
+        if self.game.started:
+            self.pointPos = (rwconfig.gamevolume / 0.008775 + 350, 208)
             self.pause_ogg.play()
             self.game.pause = True
         else:
-            self.pointpos = (rwconfig.menuvolume / 0.008775 + 350, 208)
+            self.pointPos = (rwconfig.menuvolume / 0.008775 + 350, 208)
         while self.flag:
             for event in pygame.event.get():
-                self.updata()
+                self.update()
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.volumedown = True
-                    if self.returnimgRect.collidepoint(event.pos):
+                    self.volumeDown = True
+                    if self.returnImgRect.collidepoint(event.pos):
                         buttonClick_ogg.play()
-                        self.buttondown = True
-                        self.returnimg = self.returnimg1
-                        self.updata(454)
+                        self.buttonDown = True
+                        self.returnImg = self.returnImg1
+                        self.update(454)
                     elif self.pointerRect.collidepoint(event.pos):
-                        self.ispoint = True
-                    elif self.game.begining and self.againRect.collidepoint(event.pos):
+                        self.isPoint = True
+                    elif self.game.started and self.againRect.collidepoint(event.pos):
                         self.game.flag = False
                         self.game.init()
-                        self.game.gamebegin()
-                    elif self.game.begining and self.mainmenuRect.collidepoint(event.pos):
+                        self.game.gameBegin()
+                    elif self.game.started and self.mainMenuRect.collidepoint(event.pos):
                         self.game.flag = False
-                        self.game.begining = False
+                        self.game.started = False
                         pygame.mixer.music.stop()
-                        self.mainmenuobj.flag = True
-                        self.mainmenuobj.playmusic()
-                        self.mainmenuobj.draw()
+                        self.mainMenuObj.flag = True
+                        self.mainMenuObj.playmusic()
+                        self.mainMenuObj.draw()
                     else:
-                        self.ispoint = False
+                        self.isPoint = False
                 elif event.type == pygame.MOUSEBUTTONUP:
-                    self.volumedown = False
-                    self.ispoint = False
-                    if self.returnimgRect.collidepoint(event.pos) and self.buttondown:
+                    self.volumeDown = False
+                    self.isPoint = False
+                    if self.returnImgRect.collidepoint(event.pos) and self.buttonDown:
                         self.flag = False
-                        self.buttondown = False
-                        curvolume = 'menu'
-                        if self.game.begining:
-                            curvolume = 'game'
+                        self.buttonDown = False
+                        curVolume = 'menu'
+                        if self.game.started:
+                            curVolume = 'game'
                             self.game.pause = False
-                        rwconfig.wconfig('volume', curvolume,
-                                         0.008775 * (self.pointpos[0] - 350))
+                        rwconfig.wconfig('volume', curVolume,
+                                         0.008775 * (self.pointPos[0] - 350))
                 elif event.type == pygame.MOUSEMOTION:
-                    if self.volumedown and self.ispoint:
+                    if self.volumeDown and self.isPoint:
                         x = min(max(361, event.pos[0]), 474)
-                        self.pointpos = (x - 10, 208)
-                self.returnimg = self.returnimg0
-        if not self.game.begining:
-            mainmenuBgm_ogg.set_volume(rwconfig.menuvolume)
+                        self.pointPos = (x - 10, 208)
+                self.returnImg = self.returnImg0
+        if not self.game.started:
+            mainMenuBgm_ogg.set_volume(rwconfig.menuvolume)
         else:
             pygame.mixer.music.set_volume(rwconfig.gamevolume)
 
@@ -111,20 +111,20 @@ class MainMenu:
     def __init__(self, game) -> None:
         self.flag = True
         self.game = game
-        mainmenuBgm_ogg.set_volume(rwconfig.menuvolume)
+        mainMenuBgm_ogg.set_volume(rwconfig.menuvolume)
         self.menuClick_ogg = getSoundEffect('aud/bleep.ogg')
 
         # 开屏界面
         self.load = 250
         self.loading = True
-        self.tittlescreen = getImageSource('img/主界面/titlescreen.jpg')
-        self.popcap = getImageSource('img/主界面/PopCap_Logo.png')
-        self.popcap = pygame.transform.scale(self.popcap, (150, 150))
-        self.pvzlogo = getImageSource('img/主界面/PvZ_Logo.png')
-        self.loadbar = getImageSource('img/主界面/LoadBar_dirt.png')
-        self.loadgrass = getImageSource('img/主界面/LoadBar_grass.png')
+        self.tittleScreen = getImageSource('img/主界面/titlescreen.jpg')
+        self.PopCap = pygame.transform.scale(
+            getImageSource('img/主界面/PopCap_Logo.png'), (150, 150))
+        self.pvzLogo = getImageSource('img/主界面/PvZ_Logo.png')
+        self.loadBar = getImageSource('img/主界面/LoadBar_dirt.png')
+        self.loadGrass = getImageSource('img/主界面/LoadBar_grass.png')
         self.angle = 0
-        self.rollcapimage = getImageSource('img/主界面/SodRollCap.png')
+        self.rollCap = getImageSource('img/主界面/SodRollCap.png')
 
         # 主界面
         self.center = getImageSource('img/主界面/center.png')
@@ -178,13 +178,13 @@ class MainMenu:
         self.smallRect = pygame.Rect(
             405, 185, self.small.get_width(), self.small.get_height() - 50)
         # 解密
-        self.challeng0 = getImageSource(
+        self.challenge0 = getImageSource(
             'img/主界面/SelectorScreen_Challenges_button.png')
-        self.challeng1 = getImageSource(
+        self.challenge1 = getImageSource(
             'img/主界面/SelectorScreen_Challenges_Highlight.png')
-        self.challeng = self.challeng0
-        self.challengRect = pygame.Rect(
-            412, 275, self.challeng.get_width(), self.challeng.get_height() - 45)
+        self.challenge = self.challenge0
+        self.challengeRect = pygame.Rect(
+            412, 275, self.challenge.get_width(), self.challenge.get_height() - 45)
         # 生存
         self.survival0 = getImageSource(
             'img/主界面/SelectorScreen_Vasebreaker_button.png')
@@ -202,14 +202,14 @@ class MainMenu:
         self.shopRect = self.shop.get_rect(topleft=(400, 480))
 
         # 帮助
-        self.helpering = True
+        self.helpFlag = True
         self.words = getImageSource('img/主界面/says.png')
-        self.wordsbg = pygame.transform.scale(
+        self.wordsBg = pygame.transform.scale(
             getImageSource('img/主界面/saysbg.jpg'), (800, 600))
-        self.backmenu0 = getImageSource('img/主界面/return.png')
-        self.backmenu1 = getImageSource('img/主界面/return1.png')
-        self.backmenu = self.backmenu0
-        self.backmenuRect = self.backmenu.get_rect(topleft=(322, 520))
+        self.backMenu0 = getImageSource('img/主界面/return.png')
+        self.backMenu1 = getImageSource('img/主界面/return1.png')
+        self.backMenu = self.backMenu0
+        self.backMenuRect = self.backMenu.get_rect(topleft=(322, 520))
 
         # 读取配置
         self.naming = True
@@ -219,25 +219,26 @@ class MainMenu:
         self.cancel = pygame.Rect(410, 331, 204, 44)
 
         from Source import menu
-        self.menuobj = menu
+        self.menuObj = menu
 
     def playmusic(self):
-        mainmenuBgm_ogg.play(-1)
+        mainMenuBgm_ogg.play(-1)
 
-    def init(self):        
+    def init(self):
         self.playmusic()
-        def updata():
+
+        def update():
             screen.blits([
-                (self.tittlescreen, (0, 0)),
-                (self.pvzlogo, (60, 30)),
-                (self.popcap, (-10, -10)),
-                (self.loadbar, ((800 - self.loadbar.get_width()) // 2, 500)),
-                (self.loadgrass, ((800 - self.loadbar.get_width()) // 2, 480))
+                (self.tittleScreen, (0, 0)),
+                (self.pvzLogo, (60, 30)),
+                (self.PopCap, (-10, -10)),
+                (self.loadBar, ((800 - self.loadBar.get_width()) // 2, 500)),
+                (self.loadGrass, ((800 - self.loadBar.get_width()) // 2, 480))
             ])
 
         while self.loading and self.load <= 533:
-            updata()
-            screen.blit(menutext.render(
+            update()
+            screen.blit(menuText.render(
                 '请等待加载', True, (255, 215, 0)), (345, 510))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -246,18 +247,21 @@ class MainMenu:
                 elif event.type == pygame.KEYUP or event.type == pygame.MOUSEBUTTONUP:
                     self.loading = False
                     break
-            rollcap = pygame.transform.rotate(self.rollcapimage, self.angle)
-            new_rect = rollcap.get_rect(center=(self.load, 470))
-            screen.blit(rollcap, new_rect.topleft)
+            roll_cap = pygame.transform.rotate(self.rollCap, self.angle)
+            new_rect = roll_cap.get_rect(center=(self.load, 470))
+            screen.blit(roll_cap, new_rect.topleft)
             self.angle -= 0.3
             self.load += 0.2
             pygame.display.flip()
-        updata()
-        screen.blit(menutext.render(
+        update()
+        screen.blit(menuText.render(
             '任意操作以开始游戏', True, (255, 215, 0)), (295, 510))
+        pygame.display.flip()
+        while not pygame.event.get():
+            pass
         self.draw()
 
-    def updata(self):
+    def update(self):
         screen.blits([
             (self.BG, (0, 0)),
             (self.center, (90, 270)),
@@ -270,12 +274,12 @@ class MainMenu:
             (self.leaf3, (255, 550)),
             (self.leaf2, (248, 572)),
             (self.leaf4, (287, 565)),
-            (menutext.render(self.name, True, (255, 215, 0)), (150, 90))
+            (menuText.render(self.name, True, (255, 215, 0)), (150, 90))
         ])
         screen.blits([
             (self.adventure, (405, 55)),
             (self.small, (405, 168)),
-            (self.challeng, (412, 255)),
+            (self.challenge, (412, 255)),
             (self.survival, (410, 325)),
             (self.shop, (400, 480)),
             (self.flower1, (682, 415)),
@@ -294,17 +298,17 @@ class MainMenu:
             menuClick_ogg.play()
             return True
 
-    def setname(self):
+    def setName(self):
         while self.naming:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    leng = len(self.typing)
-                    if event.key == 8 and leng > 0:
+                    length = len(self.typing)
+                    if event.key == 8 and length > 0:
                         self.typing = self.typing[:-1]
-                    elif event.key in range(K_a, K_z + 1) and leng <= 10:
+                    elif event.key in range(K_a, K_z + 1) and length <= 10:
                         self.typing += chr(event.key)
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.confirm.collidepoint(event.pos):
@@ -320,85 +324,85 @@ class MainMenu:
                     (self.rename, (154, 104)),
                     (pygame.transform.scale(self.game.menu, (204, 44)), (190, 331)),
                     (pygame.transform.scale(self.game.menu, (204, 44)), (410, 331)),
-                    (menutext.render('确定', True, (0, 255, 0)), (270, 340)),
-                    (menutext.render('取消', True, (0, 255, 0)), (490, 340)),
-                    (menutext.render(self.typing, True, (255, 215, 0)), (205, 256))
+                    (menuText.render('确定', True, (0, 255, 0)), (270, 340)),
+                    (menuText.render('取消', True, (0, 255, 0)), (490, 340)),
+                    (menuText.render(self.typing, True, (255, 215, 0)), (205, 256))
                 ])
                 pygame.display.flip()
 
-    def updatabutton(self, rect, currentstate, defaultimage, hoverimage, pos):
+    def updateButton(self, rect, state, default, hover, pos):
         if rect.collidepoint(pos):
-            if currentstate == defaultimage:
+            if state == default:
                 self.menuClick_ogg.play()
-            return hoverimage
-        return defaultimage
+            return hover
+        return default
 
     def helper(self):
         paper_ogg.play()
-        while self.helpering:
+        while self.helpFlag:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.backmenuRect.collidepoint(event.pos):
-                        self.helpering = False
+                    if self.backMenuRect.collidepoint(event.pos):
+                        self.helpFlag = False
                         self.flag = True
                         self.draw()
                 else:
                     if event.type == pygame.MOUSEMOTION:
-                        self.backmenu = self.updatabutton(self.backmenuRect, self.backmenu, self.backmenu0,
-                                                          self.backmenu1, event.pos)
+                        self.backMenu = self.updateButton(self.backMenuRect, self.backMenu, self.backMenu0,
+                                                          self.backMenu1, event.pos)
                     screen.blits([
-                        (self.wordsbg, (0, 0)),
+                        (self.wordsBg, (0, 0)),
                         (self.words, (85, 80)),
-                        (self.backmenu, (322, 520)),
-                        (menutext.render('返回主页', True, (255, 215, 0)), (355, 528))
+                        (self.backMenu, (322, 520)),
+                        (menuText.render('返回主页', True, (255, 215, 0)), (355, 528))
                     ])
                     pygame.display.flip()
 
     def draw(self):
         while self.flag:
+            self.update()
             for event in pygame.event.get():
-                self.updata()
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
 
                 elif event.type == pygame.MOUSEMOTION:
-                    self.adventure = self.updatabutton(self.adventureRect, self.adventure, self.adventure0,
+                    self.adventure = self.updateButton(self.adventureRect, self.adventure, self.adventure0,
                                                        self.adventure1, event.pos)
-                    self.small = self.updatabutton(
+                    self.small = self.updateButton(
                         self.smallRect, self.small, self.small0, self.small1, event.pos)
-                    self.challeng = self.updatabutton(self.challengRect, self.challeng, self.challeng0, self.challeng1,
+                    self.challenge = self.updateButton(self.challengeRect, self.challenge, self.challenge0, self.challenge1,
+                                                       event.pos)
+                    self.survival = self.updateButton(self.survivalRect, self.survival, self.survival0, self.survival1,
                                                       event.pos)
-                    self.survival = self.updatabutton(self.survivalRect, self.survival, self.survival0, self.survival1,
-                                                      event.pos)
-                    self.option = self.updatabutton(
+                    self.option = self.updateButton(
                         self.optionRect, self.option, self.option0, self.option1, event.pos)
-                    self.help = self.updatabutton(
+                    self.help = self.updateButton(
                         self.helpRect, self.help, self.help0, self.help1, event.pos)
-                    self.exit = self.updatabutton(
+                    self.exit = self.updateButton(
                         self.exitRect, self.exit, self.exit0, self.exit1, event.pos)
-                    self.save = self.updatabutton(
+                    self.save = self.updateButton(
                         self.saveRect, self.save, self.save0, self.save1, event.pos)
-                    self.shop = self.updatabutton(
+                    self.shop = self.updateButton(
                         self.shopRect, self.shop, self.shop0, self.shop1, event.pos)
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.adventureRect.collidepoint(event.pos):
                         self.flag = False
                         self.game.init()
-                        self.game.gamebegin()
+                        self.game.gameBegin()
                     if self.survivalRect.collidepoint(event.pos):
                         self.flag = False
                         self.game.flag = True
                         if self.game.won:
                             self.game.init()
-                        self.game.gamebegin(True)
+                        self.game.gameBegin(True)
                     elif self.saveRect.collidepoint(event.pos):
                         self.naming = True
-                        self.setname()
+                        self.setName()
                     elif self.exitRect.collidepoint(event.pos):
                         menuClick_ogg.play()
                         pygame.quit()
@@ -406,13 +410,13 @@ class MainMenu:
                     elif self.helpRect.collidepoint(event.pos):
                         menuClick_ogg.play()
                         self.flag = False
-                        self.helpering = True
+                        self.helpFlag = True
                         self.helper()
                     elif self.optionRect.collidepoint(event.pos):
                         menuClick_ogg.play()
-                        self.menuobj.flag = True
-                        self.menuobj.returnimg = self.menuobj.returnimg0
-                        self.menuobj.draw()
+                        self.menuObj.flag = True
+                        self.menuObj.returnImg = self.menuObj.returnImg0
+                        self.menuObj.draw()
                 if self.name == '':
-                    self.setname()
+                    self.setName()
             pygame.display.flip()

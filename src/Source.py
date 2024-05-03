@@ -3,9 +3,10 @@ import pygame
 pygame.init()
 pygame.mixer.init()
 
-game=None
-menu=None
-mainmenu=None
+game = None
+menu = None
+mainMenu = None
+
 
 def getImageSource(path):
     return pygame.image.load(path)
@@ -20,20 +21,20 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption('Plant Vs Zombie α')
 pygame.display.set_icon(getImageSource('img/icon.png'))
 
-scoretext = pygame.font.Font('font/digit.ttf', 15)
-pricetext = pygame.font.Font('font/digit.ttf', 13)
-menutext = pygame.font.Font('font/fzsr.ttf', 22)
-tittletext = pygame.font.Font('font/fzsr.ttf', 48)
-wavetext = pygame.font.Font('font/fzxs12.ttf', 12)
+scoreText = pygame.font.Font('font/digit.ttf', 15)
+priceText = pygame.font.Font('font/digit.ttf', 13)
+menuText = pygame.font.Font('font/fzsr.ttf', 22)
+tittleText = pygame.font.Font('font/fzsr.ttf', 48)
+waveText = pygame.font.Font('font/fzxs12.ttf', 12)
 plantDead_ogg = getSoundEffect('aud/bigchomp.ogg')
 zombieComing_ogg = getSoundEffect('aud/awooga.ogg')
 potatoActive_ogg = getSoundEffect('aud/gravestone_rumble.ogg')
 potatoBoom_ogg = getSoundEffect('aud/potato_mine.ogg')
 cherryBoom_ogg = getSoundEffect('aud/cherrybomb.ogg')
-coinfall_ogg = getSoundEffect('aud/moneyfalls.ogg')
-coinpick_ogg = getSoundEffect('aud/coin.ogg')
-diamondfall_ogg = getSoundEffect('aud/chime.ogg')
-diamondpick_ogg = getSoundEffect('aud/diamond.ogg')
+coinFall_ogg = getSoundEffect('aud/moneyfalls.ogg')
+coinPick_ogg = getSoundEffect('aud/coin.ogg')
+diamondFall_ogg = getSoundEffect('aud/chime.ogg')
+diamondPick_ogg = getSoundEffect('aud/diamond.ogg')
 paper_ogg = getSoundEffect('aud/paper.ogg')
 zombieEating_ogg = [
     getSoundEffect(path) for path in (
@@ -56,15 +57,15 @@ zombieGroan_ogg = [
 ]
 menuClick_ogg = getSoundEffect('aud/grassstep.ogg')
 buttonClick_ogg = getSoundEffect('aud/buttonClick.ogg')
-mainmenuBgm_ogg = getSoundEffect(
+mainMenuBgm_ogg = getSoundEffect(
     'aud/bgm/Laura Shigihara - Crazy Dave.ogg')
-losemusic_ogg = [
+loseMusic_ogg = [
     getSoundEffect(path) for path in (
         'aud/losemusic.ogg',
         'aud/scream.ogg'
     )
 ]
-winmusic_ogg = getSoundEffect('aud/winmusic.ogg')
+winMusic_ogg = getSoundEffect('aud/winmusic.ogg')
 plant_ogg = [
     getSoundEffect(path) for path in (
         'aud/plant.ogg',
@@ -90,7 +91,7 @@ zombie_falling_ogg = [
         'aud/zombie_falling_1.ogg'
     )
 ]
-backgroundmusic = [
+backGroundMusic = [
     'aud/bgm/Brainiac Maniac-Laura Shigihara.mp3',
     'aud/bgm/Graze the Roof-Laura Shigihara.mp3',
     'aud/bgm/Grasswalk.mp3',

@@ -1,10 +1,11 @@
 import pygame
 import Const
 from RWconfig import rwconfig
-from Source import objectType, coinfall_ogg, screen, diamondfall_ogg, coinpick_ogg, diamondpick_ogg
+from Source import objectType, coinFall_ogg, screen, diamondFall_ogg, coinPick_ogg, diamondPick_ogg
+
 
 class Coin:
-    def __init__(self, x, y, gameobj, type=0) -> None:
+    def __init__(self, x, y, gameObj, cointype=0) -> None:
         self.x = x
         self.y = y
         self.val = 50
@@ -12,10 +13,10 @@ class Coin:
         self.first = True
         self.xspeed = 0
         self.yspeed = 0
-        self.game = gameobj
+        self.game = gameObj
         self.tick = 0
-        self.fall_ogg = coinfall_ogg if type == 0 else diamondfall_ogg
-        self.pick_ogg = coinpick_ogg
+        self.fall_ogg = coinFall_ogg if cointype == 0 else diamondFall_ogg
+        self.pick_ogg = coinPick_ogg
         self.image = objectType[12]
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.endRect = pygame.Rect(48, 580, 20, 20)
@@ -47,21 +48,21 @@ class Coin:
 
 
 class SilverCoin(Coin):
-    def __init__(self, x, y, gameobj) -> None:
-        super().__init__(x, y, gameobj)
+    def __init__(self, x, y, gameObj) -> None:
+        super().__init__(x, y, gameObj)
 
 
 class GoldCoin(Coin):
-    def __init__(self, x, y, gameobj) -> None:
-        super().__init__(x, y, gameobj)
+    def __init__(self, x, y, gameObj) -> None:
+        super().__init__(x, y, gameObj)
         self.val = 100
         self.image = objectType[13]
 
 
 class Diamond(Coin):
-    def __init__(self, x, y, gameobj) -> None:
-        super().__init__(x, y, gameobj, 1)
+    def __init__(self, x, y, gameObj) -> None:
+        super().__init__(x, y, gameObj, 1)
         self.val = 300
-        self.fall_ogg = diamondfall_ogg
-        self.pick_ogg = diamondpick_ogg
+        self.fall_ogg = diamondFall_ogg
+        self.pick_ogg = diamondPick_ogg
         self.image = objectType[14]

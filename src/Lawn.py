@@ -4,36 +4,36 @@ import random
 
 
 class Lawn:
-    def __init__(self, x, y, gameobj):
+    def __init__(self, x, y, gameObj):
         self.plant = None
-        self.game = gameobj
+        self.game = gameObj
         self.x = x
         self.y = y
-        self.row = self.game.rowload[self.y]
+        self.row = self.game.rowRoad[self.y]
         self.rect = pygame.Rect(x, y, Const.LAWN_WIDTH, Const.LAWN_HEIGHT)
 
     def getpos(self):
         return self.x, self.y
 
     def planting(self, plant, pos):
-        def setplant():
+        def setPlant():
             self.plant = plant(pos, self.game)
             self.game.Plants.append(self.plant)
             self.game.plantsInroad[self.row].append(self.plant)
 
         if not self.plant and plant.getalone():
-            setplant()
+            setPlant()
             from Source import plant_ogg
             random.choice(plant_ogg).play()
             return True
         elif self.plant and self.plant.update == plant:
             self.game.Plants.remove(self.plant)
             self.game.plantsInroad[self.row].remove(self.plant)
-            setplant()
+            setPlant()
             return True
         return False
 
-    def displanting(self):
+    def Eradicate(self):
         if self.plant:
             self.game.Plants.remove(self.plant)
             self.game.plantsInroad[self.row].remove(self.plant)

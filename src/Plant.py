@@ -6,20 +6,20 @@ from Source import objectType, plantType, getImageSource, getSoundEffect, screen
 
 
 class Plant:
-    sunprice = 0
+    sunPrice = 0
     cooling = 450
     alone = True
     image = None
 
-    def __init__(self, col, row, gameobj) -> None:
-        self.game = gameobj
+    def __init__(self, col, row, gameObj) -> None:
+        self.game = gameObj
         self.y = None
         self.x = None
         self.images = None
         self.image_index = None
         self.blood = 300
-        self.col = gameobj.colload[col]
-        self.row = gameobj.rowload[row]
+        self.col = gameObj.colRoad[col]
+        self.row = gameObj.rowRoad[row]
         self.update = None
         self.rect = None
         self.tick = 0
@@ -27,7 +27,7 @@ class Plant:
 
     @classmethod
     def getprice(cls):
-        return cls.sunprice
+        return cls.sunPrice
 
     @classmethod
     def getimage(cls):
@@ -57,20 +57,20 @@ class Plant:
         self.blood -= damm
         random.choice(zombieEating_ogg).play()
         if self.blood < 0:
-            self.game.lawns[self.row - 1][self.col - 1].displanting()
+            self.game.lawns[self.row - 1][self.col - 1].Eradicate()
             plantDead_ogg.play()
             return True
 
 
 class SunFlower(Plant):
-    sunprice = Const.SUNFLOWER_PRICE
+    sunPrice = Const.SUNFLOWER_PRICE
     image = 'img/向日葵/0.png'
 
-    def __init__(self, pos, gameobj):
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj):
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
+        self.game = gameObj
         self.image_index = 0
         self.images = plantType[0]
         self.rect = pygame.Rect(
@@ -88,15 +88,15 @@ class SunFlower(Plant):
 
 
 class PeaShooter(Plant):
-    sunprice = Const.PEASHOOTER_PRICE
+    sunPrice = Const.PEASHOOTER_PRICE
     image = 'img/豌豆射手/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = gameobj.rowload[self.y]
+        self.game = gameObj
+        self.row = gameObj.rowRoad[self.y]
         self.damm = 20
         self.image_index = 0
         self.images = plantType[1]
@@ -109,21 +109,21 @@ class PeaShooter(Plant):
             for zombie in self.game.zombiesInroad[self.row]:
                 if self.x - 30 <= zombie.x <= 700:
                     if self.tick % self.interval == 0:
-                        self.game.Peass.append(
+                        self.game.Peas.append(
                             Peas(self.x, self.y, self.game, self.damm))
                         break
 
 
 class Repeater(Plant):
-    sunprice = Const.REPEATER_PRICE
+    sunPrice = Const.REPEATER_PRICE
     image = 'img/双重射手/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = self.game.rowload[self.y]
+        self.game = gameObj
+        self.row = self.game.rowRoad[self.y]
         self.damm = 20
         self.update = GatlingPea
         self.image_index = 0
@@ -137,23 +137,23 @@ class Repeater(Plant):
             for zombie in self.game.zombiesInroad[self.row]:
                 if self.x - 30 <= zombie.x <= 700:
                     if self.tick % self.interval in [0, 10]:
-                        self.game.Peass.append(
+                        self.game.Peas.append(
                             Peas(self.x, self.y, self.game, self.damm))
                         break
 
 
 class GatlingPea(Plant):
-    sunprice = Const.GATLINGPEA_PRICE
+    sunPrice = Const.GATLINGPEA_PRICE
     cooling = 3000
     alone = False
     image = 'img/机枪射手/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = self.game.rowload[self.y]
+        self.game = gameObj
+        self.row = self.game.rowRoad[self.y]
         self.damm = 20
         self.image_index = 0
         self.images = plantType[9]
@@ -172,23 +172,23 @@ class GatlingPea(Plant):
             for zombie in self.game.zombiesInroad[self.row]:
                 if self.x - 30 <= zombie.x <= 700:
                     if self.tick % self.interval in [0, 10, 20, 30]:
-                        self.game.Peass.append(
+                        self.game.Peas.append(
                             Peas(self.x, self.y, self.game, self.damm))
                         break
 
 
 class SpicyChili(Plant):
-    sunprice = Const.SPICYCHILI_PRICE
+    sunPrice = Const.SPICYCHILI_PRICE
     cooling = 3000
     image = 'img/火爆辣椒/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = self.game.rowload[self.y]
-        self.col = self.game.colload[self.x]
+        self.game = gameObj
+        self.row = self.game.rowRoad[self.y]
+        self.col = self.game.colRoad[self.x]
         self.damm = 1800
         self.booming = False
         self.spicy_ogg = getSoundEffect('aud/jalapeno.ogg')
@@ -213,28 +213,28 @@ class SpicyChili(Plant):
                     if zombie.blood > 0:
                         zombie.blood -= self.damm
                         if zombie.blood <= 0:
-                            zombie.dieimages = objectType[8]
+                            zombie.dieImages = objectType[8]
                             zombie.dead = 2
         else:
             screen.blit(self.boomimages[math.floor(
                 self.boom_index)], (25, self.y - 40))
             self.boom_index += 0.25
             if self.boom_index == len(self.boomimages):
-                self.game.lawns[self.row - 1][self.col - 1].displanting()
+                self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 
 
 class NutsWall(Plant):
-    sunprice = Const.NUTSWALL_PRICE
+    sunPrice = Const.NUTSWALL_PRICE
     cooling = 1800
     image = 'img/坚果/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = gameobj.rowload[self.y]
-        self.col = gameobj.colload[self.x]
+        self.game = gameObj
+        self.row = gameObj.rowRoad[self.y]
+        self.col = gameObj.colRoad[self.x]
         self.image_index = 0
         self.blood = 5000
         self.images = plantType[5]
@@ -243,18 +243,18 @@ class NutsWall(Plant):
 
 
 class PotatoMine(Plant):
-    sunprice = Const.POTATOMINE_PRICE
+    sunPrice = Const.POTATOMINE_PRICE
     cooling = 1800
     image = 'img/土豆地雷/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0] + 30
         self.y = pos[1] + 45
-        self.game = gameobj
+        self.game = gameObj
         self.damm = 1800
-        self.row = gameobj.rowload[pos[1]]
-        self.col = gameobj.colload[pos[0]]
+        self.row = gameObj.rowRoad[pos[1]]
+        self.col = gameObj.colRoad[pos[0]]
         self.image_index = 0
         self.active = False
         self.booming = False
@@ -290,7 +290,7 @@ class PotatoMine(Plant):
                         if i.blood > 0:
                             i.blood -= self.damm
                             if i.blood <= 0:
-                                i.deadanimation = False
+                                i.deadAnimation = False
                                 i.dead = 1
                     break
         else:
@@ -301,21 +301,21 @@ class PotatoMine(Plant):
                 ])
                 self.boomtime += 1
             else:
-                self.game.lawns[self.row - 1][self.col - 1].displanting()
+                self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 
 
 class CherryBomb(Plant):
-    sunprice = Const.CHERRYBOMB_PRICE
+    sunPrice = Const.CHERRYBOMB_PRICE
     cooling = 3000
     image = 'img/樱桃炸弹/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = self.game.rowload[self.y]
-        self.col = self.game.colload[self.x]
+        self.game = gameObj
+        self.row = self.game.rowRoad[self.y]
+        self.col = self.game.colRoad[self.x]
         self.damm = 1800
         self.booming = False
         self.image_index = 0
@@ -338,27 +338,27 @@ class CherryBomb(Plant):
                     if self.boomRect.colliderect(zombie.rect) and zombie.blood > 0:
                         zombie.blood -= self.damm
                         if zombie.blood <= 0:
-                            zombie.dieimages = objectType[8]
+                            zombie.dieImages = objectType[8]
                             zombie.dead = 2
         else:
             if self.boomtime <= 30:
                 screen.blit(self.boomimage, (self.x - 70, self.y - 30))
                 self.boomtime += 1
             else:
-                self.game.lawns[self.row - 1][self.col - 1].displanting()
+                self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 
 
 class Torchwood(Plant):
-    sunprice = Const.TORCHWOOD_PRICE
+    sunPrice = Const.TORCHWOOD_PRICE
     image = 'img/火炬树桩/0.png'
 
-    def __init__(self, pos, gameobj) -> None:
-        super().__init__(pos[0], pos[1], gameobj)
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
-        self.game = gameobj
-        self.row = gameobj.rowload[self.y]
-        self.col = gameobj.colload[self.x]
+        self.game = gameObj
+        self.row = gameObj.rowRoad[self.y]
+        self.col = gameObj.colRoad[self.x]
         self.image_index = 0
         self.images = plantType[8]
         self.rect = pygame.Rect(self.x + 20, self.y, 55, 80)
@@ -368,7 +368,7 @@ class Torchwood(Plant):
             self.image_index = (self.image_index + 1) % len(self.images)
         screen.blit(self.images[self.image_index], (self.x + 16, self.y - 10))
         self.tick += 1
-        for peas in self.game.Peass:
-            if self.rect.colliderect(peas.rect):
-                peas.damm == 65
-                peas.images = objectType[17]
+        for pea in self.game.Peas:
+            if self.rect.colliderect(pea.rect):
+                pea.damm == 65
+                pea.images = objectType[17]

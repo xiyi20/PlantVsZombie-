@@ -11,7 +11,7 @@ class Object:
         self.images = None
         self.tick = 0
         self.image_index = 0
-        self.distorypos = screen.get_width() - 30
+        self.destroyPos = screen.get_width() - 30
 
     def draw(self):
         if self.tick % 4 == 0:
@@ -21,12 +21,12 @@ class Object:
 
 
 class Car(Object):
-    def __init__(self, x, y, gameobj) -> None:
+    def __init__(self, x, y, gameObj) -> None:
         super().__init__()
         self.speed = 4
         self.x = x
         self.y = y
-        self.game = gameobj
+        self.game = gameObj
         self.active = False
         self.canplay = True
         self.image = objectType[0]
@@ -34,7 +34,7 @@ class Car(Object):
             self.x, self.y, self.image.get_width(), self.image.get_height())
 
     def draw(self):
-        for zombie in self.game.zombiesInroad[self.game.rowload[self.y - 35]]:
+        for zombie in self.game.zombiesInroad[self.game.rowRoad[self.y - 35]]:
             if self.rect.colliderect(zombie.rect):
                 zombie.dead = 1
                 self.active = True
@@ -46,19 +46,19 @@ class Car(Object):
         self.rect = pygame.Rect(
             self.x, self.y, self.image.get_width(), self.image.get_height())
         screen.blit(self.image, (self.x, self.y))
-        if self.x >= self.distorypos:
+        if self.x >= self.destroyPos:
             self.game.Cars.remove(self)
 
 
 class Sun(Object):
-    def __init__(self, val, pos, gameobj, falling=False):
+    def __init__(self, val, pos, gameObj, falling=False):
         super().__init__()
         self.val = val
         self.x = pos[0]
         self.y = pos[1]
-        self.cury = 50
-        self.targety = pos[1]
-        self.game = gameobj
+        self.curY = 50
+        self.targetY = pos[1]
+        self.game = gameObj
         self.falling = falling
         self.image_index = 0
         self.life = Const.SUN_LIFE
@@ -71,11 +71,11 @@ class Sun(Object):
 
     def draw(self):
         if not self.pick:
-            if self.falling and self.tick % 2 == 0 and self.cury < self.targety:
-                self.cury += 1.5
-                self.y = self.cury
+            if self.falling and self.tick % 2 == 0 and self.curY < self.targetY:
+                self.curY += 1.5
+                self.y = self.curY
             else:
-                self.y = self.cury if self.falling else self.targety
+                self.y = self.curY if self.falling else self.targetY
         else:
             self.x += (-self.x) / Const.SUN_SPEED
             self.y += (-10 - self.y) / Const.SUN_SPEED
@@ -96,11 +96,11 @@ class Sun(Object):
 
 
 class Peas(Object):
-    def __init__(self, x, y, gameobj, damm=20) -> None:
+    def __init__(self, x, y, gameObj, damm=20) -> None:
         super().__init__()
         self.x = x + 35
         self.y = y + 5
-        self.game = gameobj
+        self.game = gameObj
         self.damm = damm
         self.speed = Const.PEAS_SPEED
         self.images = objectType[2]
@@ -114,13 +114,13 @@ class Peas(Object):
         self.tick += 1
         self.x += self.speed
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), 10)
-        for zombie in self.game.zombiesInroad[self.game.rowload[self.y - 5]]:
+        for zombie in self.game.zombiesInroad[self.game.rowRoad[self.y - 5]]:
             if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
                 zombie.blood -= self.damm
-                random.choice(zombie.hiteffect).play()
-                self.game.Peass.remove(self)
+                random.choice(zombie.hitEffect).play()
+                self.game.Peas.remove(self)
                 if zombie.blood <= 0:
                     zombie.dead = 1
                 break
-        if self.x >= self.distorypos and self in self.game.Peass:
-            self.game.Peass.remove(self)
+        if self.x >= self.destroyPos and self in self.game.Peas:
+            self.game.Peas.remove(self)
