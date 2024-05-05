@@ -1,6 +1,6 @@
 import pygame
 import Const
-from Source import objectType, getImageSource, priceText, screen
+from Source import objectType, getImageSource, priceText, screen, menuText
 
 
 class Card:
@@ -27,7 +27,7 @@ class Card:
         plantimage = pygame.transform.scale(getImageSource(
             self.img), (Const.CARD_IMG_SIZE, Const.CARD_IMG_SIZE))
         screen.blit(plantcard, (self.x, self.y))
-        screen.blit(plantimage, (self.x + 7, self.y + 15))
+        screen.blit(plantimage, (self.x + 4, self.y + 12))
         color = (255, 0, 0) if int(
             self.price) > self.game.playSun and not self.game.selectFlag else (0, 0, 0)
         screen.blit(priceText.render(self.price, True, color),
