@@ -3,7 +3,7 @@ import json
 
 class RWconfig:
     def __init__(self) -> None:
-        with open('config.json', 'r') as f:
+        with open('config.json', 'r', encoding='utf-8') as f:
             self.config = json.load(f)
         self.rconfig()
 
@@ -13,9 +13,14 @@ class RWconfig:
         self.gamevolume = self.config['volume']['game']
         self.menuvolume = self.config['volume']['menu']
 
-    def wconfig(self, zone, name, value):
+        self.prop = self.config['prop']
+
+    def wconfig(self, zone, name, value, prop=False):
         with open('config.json', 'w') as f:
-            self.config[zone][name] = value
+            if prop:
+                self.config['prop'][zone][name] = value
+            else:
+                self.config[zone][name] = value
             json.dump(self.config, f, indent=4)
         self.rconfig()
 

@@ -124,3 +124,36 @@ class Peas(Object):
                 break
         if self.x >= self.destroyPos and self in self.game.Peas:
             self.game.Peas.remove(self)
+
+
+class TrackPea(Peas):
+    def __init__(self, x, y, gameObj, damm=20) -> None:
+        super().__init__(x, y, gameObj, damm)
+        self.xSpeed = 4
+        self.ySpeed = 4
+        self.target = None
+        self.lastTarget = None
+
+    def draw(self):
+        if self.tick % 10 == 0:
+            self.image_index = (self.image_index + 1) % len(self.images)
+        screen.blit(self.images[self.image_index], (self.x, self.y))
+        self.tick += 1
+        if self.game.Zombies and self.lastTarget not in self.game.Zombies:
+            self.target = self.game.Zombies[0]
+            self.lastTarget = self.target
+            self.xSpeed = (self.target.x+45-self.x)/130
+            self.ySpeed = (self.target.y+82-self.y)/130
+        self.x += self.xSpeed
+        self.y += self.ySpeed
+        self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), 10)
+        for zombie in self.game.Zombies:
+            if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
+                zombie.blood -= self.damm
+                random.choice(zombie.hitEffect).play()
+                self.game.Peas.remove(self)
+                if zombie.blood <= 0:
+                    zombie.dead = 1
+                break
+        if (self.x >= self.destroyPos or self.y < 0 or self.y > 600) and self in self.game.Peas:
+            self.game.Peas.remove(self)

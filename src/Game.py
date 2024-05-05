@@ -1,12 +1,14 @@
 import sys
 import pygame
+import Const
 import random
 from RWconfig import rwconfig
 from Coin import GoldCoin
 from Object import Car, Sun
+from Card import Card
 from Zombie import NomalZ, RoadZ, IronBZ, RugbyZ
-from Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, GatlingPea
-from Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, plant_ogg, plantSlot_ogg, waveText, scoreText, menuText, zombieComing_ogg, zombieGroan_ogg, loseMusic_ogg, winMusic_ogg, backGroundMusic, mainMenuBgm_ogg, pickup_ogg, shovel_ogg
+from Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, GatlingPea, Catnip, FireCatnip
+from Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, plant_ogg, plantSlot_ogg, waveText, hoverText, scoreText, menuText, zombieComing_ogg, zombieGroan_ogg, loseMusic_ogg, winMusic_ogg, backGroundMusic, mainMenuBgm_ogg, pickup_ogg, shovel_ogg
 
 
 class Game:
@@ -15,12 +17,12 @@ class Game:
         self.background = pygame.transform.scale(
             getImageSource('img/scene/白天.jpg'), (1400, 600))
         self.moneybag = getImageSource('img/widget/关卡/moneybag.png')
-        self.plantMenu = getImageSource('img/widget/菜单栏/植物商店.png')
+        self.plantShop = getImageSource('img/widget/菜单栏/植物商店.png')
         self.shovelSlot = getImageSource('img/widget/菜单栏/铲子槽.png')
         self.shovel = getImageSource('img/widget/菜单栏/铲子.png')
         self.shovelPos = (447, -3)
         self.plantPos = (-100, -100)
-        self.menu = getImageSource('img/widget/菜单栏/按钮.png')
+        self.menu = objectType[18]
         self.progress1 = getImageSource(
             'img/widget/进度/FlagMeterLevelProgress.png')
         self.progress2 = pygame.transform.scale(getImageSource(
@@ -33,7 +35,6 @@ class Game:
                                                  (475, 513))
         self.ready = getImageSource('img/widget/关卡/SeedChooser_Button.png')
         self.menuRect = self.menu.get_rect(topleft=(680, 0))
-        self.money = rwconfig.money
         self.coinBank = objectType[15]
         self.readySetPlant_ogg = getSoundEffect('aud/readySetPlant.ogg')
         self.colRoad = {20: 1, 102: 2, 184: 3, 266: 4,
@@ -54,6 +55,8 @@ class Game:
         self.init()
 
     def init(self):
+        rwconfig.rconfig()
+        self.money = rwconfig.money
         self.first = True
         self.tick = 0
         self.playSun = 25
@@ -70,6 +73,7 @@ class Game:
         self.zombieTime = {120: 1, 1800: 2, 3600: 3,
                            5400: 5, 7800: 7, 10200: 8, 13200: 15, 17400: 25}
         self.wave = 0
+        self.lastWave = -1
         self.waves = list(self.zombieTime.keys())
         self.curScore = 0
         self.endScore = sum([i for i in self.zombieTime.values()])
@@ -89,13 +93,19 @@ class Game:
         self.Cars = [Car(-30, y + 35, self) for y in self.rowRoad.keys()]
         self.Coins = []
         self.paused = False
+        # 加载装备
+        for key in rwconfig.prop:
+            prop = rwconfig.prop[key]
+            if prop['state'] == 0:
+                obj = globals()[Const.PROP[key]]
+                self.plantCards[obj.getimage(1)] = obj
 
     def selectPlant(self):
-        from Card import Card
         curCards = 0
         pygame.mixer.music.load(
             'aud/bgm/Choose Your Seeds-Laura Shigihara.mp3')
         pygame.mixer.music.play(-1)
+        self.Cards = []
         col, row = 0, 0
         for key, value in self.plantCards.items():
             if col == 9:
@@ -103,8 +113,20 @@ class Game:
             self.Cards.append(
                 Card(key, value, value.getprice(), value.getcooltime(), self, 13 + 50 * (col % 9), 122 + 72 * row))
             col += 1
+        self.selectFlag = True
+        self.update()
         while self.selectFlag:
-            self.update()
+            screen.blits([
+                (self.background, (-220, 0)),
+                (self.plantShop, (10, 0)),
+                (self.chooseSeed, (0, 87)),
+                (self.ready, (300, 550)),
+                (scoreText.render(str(self.playSun), True, (0, 0, 0)), (26, 62)),
+                (menuText.render('一起摇滚吧!', True, (255, 215, 0)), (320, 558))
+            ])
+            for card in self.Cards:
+                card.draw()
+            self.hover()
             pygame.display.flip()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -132,6 +154,7 @@ class Game:
                                 curCards += 1
                             else:
                                 invalidClick_ogg.play()
+                            break
                     if pygame.Rect(320, 558, 156, 42).collidepoint(event.pos):
                         tem = []
                         for card in self.Cards:
@@ -139,6 +162,7 @@ class Game:
                                 tem.append(card)
                         self.Cards = tem
                         self.selectFlag = False
+                        self.paused = False
 
     def win(self):
         from Source import mainMenu
@@ -150,7 +174,6 @@ class Game:
             self.alpha += 2
             if self.alpha > 255:
                 self.flag = False
-                mainMenu.flag = True
                 mainMenu.playmusic()
                 mainMenu.draw()
         else:
@@ -172,11 +195,11 @@ class Game:
     def update(self):
         screen.blits([
             (self.background, (-220, 0)),
-            (self.plantMenu, (10, 0)),
+            (self.plantShop, (10, 0)),
             (self.shovelSlot, (456, 0)),
             (self.menu, (680, 0)),
             (scoreText.render(str(self.playSun), True, (0, 0, 0)), (26, 62)),
-            (menuText.render('菜单', True, (0, 255, 0)), (715, 8)),
+            (menuText.render('菜单', True, (0, 255, 0)), (717, 12)),
             (self.progress2, (600, 570)),
             (self.progress1, (645, 568)),
             (self.progressFlag2, (605, 577)),
@@ -189,13 +212,7 @@ class Game:
             car.draw()
         screen.blit(self.coinBank, (35, 570))
         screen.blit(scoreText.render(str(self.money),
-                                     True, (255, 215, 0)), (80, 578))
-        if self.selectFlag:
-            screen.blits([
-                (self.chooseSeed, (0, 87)),
-                (self.ready, (300, 550)),
-                (menuText.render('一起摇滚吧!', True, (255, 215, 0)), (320, 558))
-            ])
+                    True, (255, 215, 0)), (80, 578))
         for card in self.Cards:
             card.draw()
         for plant in self.Plants:
@@ -218,12 +235,17 @@ class Game:
 
     def logical(self):
         # 出僵尸，阳光
-        if self.tick == 3000:
-            self.ZombiesType.append(RoadZ)
-        elif self.tick == 7200:
-            self.ZombiesType.append(IronBZ)
-        elif self.tick == 15000:
-            self.ZombiesType.append(RugbyZ)
+        if self.wave != self.lastWave:
+            self.lastWave = self.wave
+            if self.wave == 2:
+                self.ZombiesType.append(RoadZ)
+            elif self.wave == 4:
+                self.ZombiesType.append(IronBZ)
+            elif self.wave == 7:
+                self.ZombiesType.append(RugbyZ)
+            elif self.wave == 20:
+                self.paused = True
+                self.selectPlant()
         if self.tick in self.zombieTime:
             self.wave += 1
             interval = 180 if self.tick < 15000 else 90
@@ -262,6 +284,18 @@ class Game:
                 screen.blit(lose, (
                     (screen.get_width() - lose.get_width()) / 2, (screen.get_height() - lose.get_height()) / 2))
 
+    def hover(self):
+        pos = pygame.mouse.get_pos()
+        for card in self.Cards:
+            if card.rect.collidepoint(pos):
+                pos = (card.x, card.y+71)
+                textSurface = hoverText.render(
+                    card.plant.getname(), True, (0, 0, 0))
+                textRect = textSurface.get_rect(topleft=pos)
+                pygame.draw.rect(screen, (252, 235, 98), textRect)
+                screen.blit(textSurface, pos)
+                break
+
     def playmusic(self):
         pygame.mixer.music.load(random.choice(backGroundMusic))
         pygame.mixer.music.set_volume(rwconfig.gamevolume)
@@ -285,6 +319,7 @@ class Game:
         while self.flag:
             if not self.paused:
                 self.update()
+                self.hover()
                 self.logical()
                 if self.won:
                     self.win()

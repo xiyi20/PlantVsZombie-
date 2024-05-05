@@ -2,6 +2,7 @@ import pygame
 import random
 import Const
 import math
+from Object import TrackPea, Sun, Peas
 from Source import objectType, plantType, getImageSource, getSoundEffect, screen, zombieEating_ogg, plantDead_ogg, potatoActive_ogg, potatoBoom_ogg, cherryBoom_ogg
 
 
@@ -10,28 +11,39 @@ class Plant:
     cooling = 450
     alone = True
     image = None
+    name = None
 
     def __init__(self, col, row, gameObj) -> None:
         self.game = gameObj
-        self.y = None
-        self.x = None
+        self.x = col
+        self.y = row
+        self.xOffset = 13
+        self.yOffset = 5
+        self.fps = 4
         self.images = None
         self.image_index = None
         self.blood = 300
         self.col = gameObj.colRoad[col]
         self.row = gameObj.rowRoad[row]
         self.update = None
-        self.rect = None
+        self.rect = pygame.Rect(self.x, self.y, 65, 75)
         self.tick = 0
         self.interval = 80
+
+    @classmethod
+    def getname(cls):
+        return cls.name
 
     @classmethod
     def getprice(cls):
         return cls.sunPrice
 
     @classmethod
-    def getimage(cls):
-        return getImageSource(cls.image)
+    def getimage(cls, path: bool = 0):
+        if path:
+            return cls.image
+        else:
+            return getImageSource(cls.image)
 
     @classmethod
     def getcooltime(cls):
@@ -41,13 +53,22 @@ class Plant:
     def getalone(cls):
         return cls.alone
 
+    def check(self):
+        zombies = self.game.zombiesInroad[self.row]
+        if zombies:
+            for zombie in zombies:
+                if self.x - 30 <= zombie.x <= 700:
+                    return True
+        return False
+
     def shot(self):
         pass
 
     def switchimg(self):
-        if self.tick % 4 == 0:
+        if self.tick % self.fps == 0:
             self.image_index = (self.image_index + 1) % len(self.images)
-        screen.blit(self.images[self.image_index], (self.x + 13, self.y + 5))
+        screen.blit(self.images[self.image_index],
+                    (self.x + self.xOffset, self.y + self.yOffset))
         self.tick += 1
 
     def draw(self):
@@ -65,20 +86,19 @@ class Plant:
 class SunFlower(Plant):
     sunPrice = Const.SUNFLOWER_PRICE
     image = 'img/向日葵/0.png'
+    name = '向日葵'
 
     def __init__(self, pos, gameObj):
         super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
+        self.yOffset = 3
         self.game = gameObj
         self.image_index = 0
         self.images = plantType[0]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
         self.suntime = random.randint(180, 720)
 
     def draw(self):
-        from Object import Sun
         self.switchimg()
         self.suntime -= 1
         if self.suntime == 0:
@@ -90,6 +110,7 @@ class SunFlower(Plant):
 class PeaShooter(Plant):
     sunPrice = Const.PEASHOOTER_PRICE
     image = 'img/豌豆射手/0.png'
+    name = '豌豆射手'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -100,23 +121,17 @@ class PeaShooter(Plant):
         self.damm = 20
         self.image_index = 0
         self.images = plantType[1]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
 
     def shot(self):
-        from Object import Peas
-        if self.game.zombiesInroad[self.row]:
-            for zombie in self.game.zombiesInroad[self.row]:
-                if self.x - 30 <= zombie.x <= 700:
-                    if self.tick % self.interval == 0:
-                        self.game.Peas.append(
-                            Peas(self.x, self.y, self.game, self.damm))
-                        break
+        if self.check() and self.tick % self.interval == 0:
+            self.game.Peas.append(
+                Peas(self.x, self.y, self.game, self.damm))
 
 
 class Repeater(Plant):
     sunPrice = Const.REPEATER_PRICE
     image = 'img/双重射手/0.png'
+    name = '双发射手'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -128,18 +143,11 @@ class Repeater(Plant):
         self.update = GatlingPea
         self.image_index = 0
         self.images = plantType[2]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
 
     def shot(self):
-        from Object import Peas
-        if self.game.zombiesInroad[self.row]:
-            for zombie in self.game.zombiesInroad[self.row]:
-                if self.x - 30 <= zombie.x <= 700:
-                    if self.tick % self.interval in [0, 10]:
-                        self.game.Peas.append(
-                            Peas(self.x, self.y, self.game, self.damm))
-                        break
+        if self.check() and self.tick % self.interval in [0, 10]:
+            self.game.Peas.append(
+                Peas(self.x, self.y, self.game, self.damm))
 
 
 class GatlingPea(Plant):
@@ -147,40 +155,31 @@ class GatlingPea(Plant):
     cooling = 3000
     alone = False
     image = 'img/机枪射手/0.png'
+    name = '机枪射手'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
+        self.xOffset = 13
+        self.yOffset = -5
         self.game = gameObj
         self.row = self.game.rowRoad[self.y]
         self.damm = 20
         self.image_index = 0
         self.images = plantType[9]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
-
-    def draw(self):
-        if self.tick % 4 == 0:
-            self.image_index = (self.image_index + 1) % len(self.images)
-        screen.blit(self.images[self.image_index], (self.x + 13, self.y - 5))
-        self.tick += 1
 
     def shot(self):
-        from Object import Peas
-        if self.game.zombiesInroad[self.row]:
-            for zombie in self.game.zombiesInroad[self.row]:
-                if self.x - 30 <= zombie.x <= 700:
-                    if self.tick % self.interval in [0, 10, 20, 30]:
-                        self.game.Peas.append(
-                            Peas(self.x, self.y, self.game, self.damm))
-                        break
+        if self.check() and self.tick % self.interval in [0, 10, 20, 30]:
+            self.game.Peas.append(
+                Peas(self.x, self.y, self.game, self.damm))
 
 
 class SpicyChili(Plant):
     sunPrice = Const.SPICYCHILI_PRICE
     cooling = 3000
     image = 'img/火爆辣椒/0.png'
+    name = '火爆辣椒'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -194,8 +193,6 @@ class SpicyChili(Plant):
         self.spicy_ogg = getSoundEffect('aud/jalapeno.ogg')
         self.image_index = 0
         self.images = plantType[3]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
         self.boom_index = 0
         self.boomimages = plantType[4]
         self.boomRect = pygame.Rect(
@@ -204,7 +201,7 @@ class SpicyChili(Plant):
     def draw(self):
         if not self.booming:
             screen.blit(self.images[math.floor(
-                self.image_index)], (self.x + 10, self.y - 5))
+                self.image_index)], (self.x + 10, self.y-15))
             self.image_index += 0.25
             if self.image_index == len(self.images):
                 self.booming = True
@@ -227,6 +224,7 @@ class NutsWall(Plant):
     sunPrice = Const.NUTSWALL_PRICE
     cooling = 1800
     image = 'img/坚果/0.png'
+    name = '坚果'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -238,14 +236,13 @@ class NutsWall(Plant):
         self.image_index = 0
         self.blood = 5000
         self.images = plantType[5]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
 
 
 class PotatoMine(Plant):
     sunPrice = Const.POTATOMINE_PRICE
     cooling = 1800
     image = 'img/土豆地雷/0.png'
+    name = '土豆地雷'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -308,6 +305,7 @@ class CherryBomb(Plant):
     sunPrice = Const.CHERRYBOMB_PRICE
     cooling = 3000
     image = 'img/樱桃炸弹/0.png'
+    name = '樱桃炸弹'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
@@ -320,8 +318,6 @@ class CherryBomb(Plant):
         self.booming = False
         self.image_index = 0
         self.images = plantType[7]
-        self.rect = pygame.Rect(
-            self.x, self.y, self.images[0].get_width(), self.images[0].get_height())
         self.boomtime = 0
         self.boomimage = objectType[6]
         self.boomRect = pygame.Rect(self.x - 70, self.y - 30, 200, 130)
@@ -351,11 +347,14 @@ class CherryBomb(Plant):
 class Torchwood(Plant):
     sunPrice = Const.TORCHWOOD_PRICE
     image = 'img/火炬树桩/0.png'
+    name = '火炬树桩'
 
     def __init__(self, pos, gameObj) -> None:
         super().__init__(pos[0], pos[1], gameObj)
         self.x = pos[0]
         self.y = pos[1]
+        self.xOffset = 16
+        self.yOffset = -10
         self.game = gameObj
         self.row = gameObj.rowRoad[self.y]
         self.col = gameObj.colRoad[self.x]
@@ -364,11 +363,68 @@ class Torchwood(Plant):
         self.rect = pygame.Rect(self.x + 20, self.y, 55, 80)
 
     def draw(self):
-        if self.tick % 4 == 0:
-            self.image_index = (self.image_index + 1) % len(self.images)
-        screen.blit(self.images[self.image_index], (self.x + 16, self.y - 10))
-        self.tick += 1
+        self.switchimg()
         for pea in self.game.Peas:
             if self.rect.colliderect(pea.rect):
                 pea.damm == 65
                 pea.images = objectType[17]
+
+
+class Catnip(Plant):
+    sunPrice = Const.CATNIP_PRICE
+    cooling = 3000
+    image = 'img/猫尾草/普通/0.png'
+    name = '猫尾草'
+
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos[0], pos[1], gameObj)
+        self.update = None
+        self.x = pos[0]
+        self.y = pos[1]
+        self.fps = 7
+        self.xOffset = -10
+        self.yOffset = 5
+        self.game = gameObj
+        self.row = self.game.rowRoad[self.y]
+        self.damm = 20
+        self.update = FireCatnip
+        self.image_index = 0
+        self.shootImg = objectType[21]
+        self.images = plantType[11]
+
+    def check(self):
+        if self.game.Zombies:
+            for zombie in self.game.Zombies:
+                if zombie.x <= 700:
+                    return zombie
+        return None
+
+    def shot(self):
+        target = self.check()
+        if target and self.tick % self.interval in [0,10]:
+            tem = TrackPea(self.x-15, self.y-5, self.game, self.damm)
+            tem.images = self.shootImg
+            self.game.Peas.append(tem)
+
+
+class FireCatnip(Catnip):
+    sunPrice = Const.FIRECATNIP_PRICE
+    cooling = 3000
+    alone=False
+    image = 'img/猫尾草/火/0.png'
+    name = '火球猫尾草'
+
+    def __init__(self, pos, gameObj) -> None:
+        super().__init__(pos, gameObj)
+        self.update = None
+        self.damm = 65
+        self.interval=150
+        self.shootImg = objectType[17]
+        self.images = plantType[10]
+
+    def shot(self):
+        target = self.check()
+        if target and self.tick % self.interval in [0, 25]:
+            tem = TrackPea(self.x-15, self.y-5, self.game, self.damm)
+            tem.images = self.shootImg
+            self.game.Peas.append(tem)

@@ -1,6 +1,7 @@
 import Const
 import pygame
 import random
+from Source import plant_ogg
 
 
 class Lawn:
@@ -20,11 +21,10 @@ class Lawn:
             self.plant = plant(pos, self.game)
             self.game.Plants.append(self.plant)
             self.game.plantsInroad[self.row].append(self.plant)
+            random.choice(plant_ogg).play()
 
         if not self.plant and plant.getalone():
             setPlant()
-            from Source import plant_ogg
-            random.choice(plant_ogg).play()
             return True
         elif self.plant and self.plant.update == plant:
             self.game.Plants.remove(self.plant)

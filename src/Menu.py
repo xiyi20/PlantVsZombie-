@@ -3,6 +3,7 @@ import pygame
 import pygame.mixer
 from pygame.locals import K_a, K_z
 from RWconfig import rwconfig
+from Shop import Shop
 from Source import getImageSource, getSoundEffect, screen, invalidClick_ogg, menuText, buttonClick_ogg, mainMenuBgm_ogg, paper_ogg, tittleText, menuClick_ogg
 
 
@@ -48,6 +49,7 @@ class Menu:
         pygame.display.flip()
 
     def draw(self):
+        self.flag = True
         from Source import mainMenu
         self.mainMenuObj = mainMenu
         if self.game.started:
@@ -79,7 +81,6 @@ class Menu:
                         self.game.flag = False
                         self.game.started = False
                         pygame.mixer.music.stop()
-                        self.mainMenuObj.flag = True
                         self.mainMenuObj.playmusic()
                         self.mainMenuObj.draw()
                     else:
@@ -111,6 +112,7 @@ class MainMenu:
     def __init__(self, game) -> None:
         self.flag = True
         self.game = game
+        self.seller = Shop()
         mainMenuBgm_ogg.set_volume(rwconfig.menuvolume)
         self.menuClick_ogg = getSoundEffect('aud/bleep.ogg')
 
@@ -299,6 +301,7 @@ class MainMenu:
             return True
 
     def setName(self):
+        self.naming = True
         while self.naming:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -338,6 +341,7 @@ class MainMenu:
         return default
 
     def helper(self):
+        self.helpFlag = True
         paper_ogg.play()
         while self.helpFlag:
             for event in pygame.event.get():
@@ -347,8 +351,6 @@ class MainMenu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.backMenuRect.collidepoint(event.pos):
                         self.helpFlag = False
-                        self.flag = True
-                        self.draw()
                 else:
                     if event.type == pygame.MOUSEMOTION:
                         self.backMenu = self.updateButton(self.backMenuRect, self.backMenu, self.backMenu0,
@@ -362,6 +364,7 @@ class MainMenu:
                     pygame.display.flip()
 
     def draw(self):
+        self.flag = True
         while self.flag:
             self.update()
             for event in pygame.event.get():
@@ -391,30 +394,28 @@ class MainMenu:
 
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.adventureRect.collidepoint(event.pos):
-                        self.flag = False
                         self.game.init()
                         self.game.gameBegin()
                     if self.survivalRect.collidepoint(event.pos):
-                        self.flag = False
                         self.game.flag = True
                         if self.game.won:
                             self.game.init()
                         self.game.gameBegin(True)
                     elif self.saveRect.collidepoint(event.pos):
-                        self.naming = True
+                        menuClick_ogg.play()
                         self.setName()
+                    elif self.shopRect.collidepoint(event.pos):
+                        menuClick_ogg.play()
+                        self.seller.draw()
                     elif self.exitRect.collidepoint(event.pos):
                         menuClick_ogg.play()
                         pygame.quit()
                         sys.exit()
                     elif self.helpRect.collidepoint(event.pos):
                         menuClick_ogg.play()
-                        self.flag = False
-                        self.helpFlag = True
                         self.helper()
                     elif self.optionRect.collidepoint(event.pos):
                         menuClick_ogg.play()
-                        self.menuObj.flag = True
                         self.menuObj.returnImg = self.menuObj.returnImg0
                         self.menuObj.draw()
                 if self.name == '':

@@ -26,6 +26,7 @@ priceText = pygame.font.Font('font/digit.ttf', 13)
 menuText = pygame.font.Font('font/fzsr.ttf', 22)
 tittleText = pygame.font.Font('font/fzsr.ttf', 48)
 waveText = pygame.font.Font('font/fzxs12.ttf', 12)
+hoverText = pygame.font.Font('font/fzxs12.ttf', 17)
 plantDead_ogg = getSoundEffect('aud/bigchomp.ogg')
 zombieComing_ogg = getSoundEffect('aud/awooga.ogg')
 potatoActive_ogg = getSoundEffect('aud/gravestone_rumble.ogg')
@@ -155,6 +156,10 @@ objectType = [
     getImageSource('img/widget/关卡/coinbank.png'),
     [getImageSource(f'img/大爷/死/{i}.png') for i in range(7)],
     [getImageSource(f'img/豆/火豆/{i}.png') for i in range(2)],
+    getImageSource('img/widget/菜单栏/按钮.png'),
+    getImageSource('img/主界面/store.png'),
+    getImageSource('img/主界面/dialog.png'),
+    [getImageSource('img/猫尾草/thorn.png')]
 ]
 plantType = [
     [getImageSource(f'img/向日葵/{i}.png') for i in range(18)],
@@ -167,4 +172,9 @@ plantType = [
     [getImageSource(f'img/樱桃炸弹/{i}.png') for i in range(7)],
     [getImageSource(f'img/火炬树桩/{i}.png') for i in range(9)],
     [getImageSource(f'img/机枪射手/{i}.png') for i in range(13)],
+    [getImageSource(f'img/猫尾草/火/{i}.png') for i in range(14)],
+    [getImageSource(f'img/猫尾草/普通/{i}.png') for i in range(14)]
+]
+goodsType=[
+    getImageSource('img/widget/商店/Store_SoldOutLabel.png')
 ]
