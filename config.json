@@ -4,7 +4,21 @@
         "money": 0
     },
     "volume": {
-        "game": 1.0,
-        "menu": 0.2
+        "game": 1.00035,
+        "menu": 0.20000000000000012
+    },
+    "prop": {
+        "Catnip": {
+            "name": "\u9999\u84b2",
+            "image": "img/widget/\u5546\u5e97/\u9999\u84b2.png",
+            "price": 8000,
+            "state": 1
+        },
+        "FireCatnip": {
+            "name": "\u706b\u7130\u9999\u84b2",
+            "image": "img/widget/\u5546\u5e97/\u706b\u7130\u9999\u84b2.png",
+            "price": 10000,
+            "state": 1
+        }
     }
 }
