@@ -49,7 +49,7 @@ class Zombie:
                 self.images = self.type[0]
                 self.x -= self.speed
                 self.rect = pygame.Rect(
-                    self.x + 100, self.y, 20, self.images[0].get_height())
+                    self.x + 100, self.y, 20, 48)
             else:
                 self.images = self.type[1]
                 if self.game.lawns[self.eating.row - 1][self.eating.col - 1].plant:
