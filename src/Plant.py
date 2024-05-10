@@ -418,7 +418,7 @@ class FireCatnip(Catnip):
         super().__init__(pos, gameObj)
         self.update = None
         self.damm = 65
-        self.interval=150
+        self.interval=140
         self.shootImg = objectType[17]
         self.images = plantType[10]
 
