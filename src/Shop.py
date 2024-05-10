@@ -33,7 +33,6 @@ class Shop:
         self.flag = True
         self.dialogFlag = True
         self.image = objectType[19]
-        self.money = rwconfig.money
         self.Goods = []
         col,rol=0,0
         for key in rwconfig.prop:
@@ -87,6 +86,8 @@ class Shop:
 
     def draw(self):
         self.flag = True
+        rwconfig.lconfig()
+        self.money = rwconfig.money
         while self.flag:
             screen.blits([
                 (self.image, (0, 0)),
