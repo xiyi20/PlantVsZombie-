@@ -3,8 +3,14 @@ import json
 
 class RWconfig:
     def __init__(self) -> None:
-        with open('config.json', 'r', encoding='utf-8') as f:
-            self.config = json.load(f)
+        self.file = None
+        self.lconfig()
+
+    def lconfig(self):
+        if self.file:
+            self.file.close()
+        self.file = open('config.json', 'r', encoding='utf-8')
+        self.config = json.load(self.file)
         self.rconfig()
 
     def rconfig(self):

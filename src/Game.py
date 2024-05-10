@@ -55,11 +55,11 @@ class Game:
         self.init()
 
     def init(self):
-        rwconfig.rconfig()
+        rwconfig.lconfig()
         self.money = rwconfig.money
         self.first = True
         self.tick = 0
-        self.playSun = 25
+        self.curSun = 25
         self.flag = True
         self.selectFlag = True
         self.started = False
@@ -121,7 +121,7 @@ class Game:
                 (self.plantShop, (10, 0)),
                 (self.chooseSeed, (0, 87)),
                 (self.ready, (300, 550)),
-                (scoreText.render(str(self.playSun), True, (0, 0, 0)), (26, 62)),
+                (scoreText.render(str(self.curSun), True, (0, 0, 0)), (26, 62)),
                 (menuText.render('一起摇滚吧!', True, (255, 215, 0)), (320, 558))
             ])
             for card in self.Cards:
@@ -198,7 +198,7 @@ class Game:
             (self.plantShop, (10, 0)),
             (self.shovelSlot, (456, 0)),
             (self.menu, (680, 0)),
-            (scoreText.render(str(self.playSun), True, (0, 0, 0)), (26, 62)),
+            (scoreText.render(str(self.curSun), True, (0, 0, 0)), (26, 62)),
             (menuText.render('菜单', True, (0, 255, 0)), (717, 12)),
             (self.progress2, (600, 570)),
             (self.progress1, (645, 568)),
@@ -288,9 +288,11 @@ class Game:
         pos = pygame.mouse.get_pos()
         for card in self.Cards:
             if card.rect.collidepoint(pos):
+                color = (0, 0, 0) if (card.curTime == '0' and self.curSun >=
+                                      card.plant.getprice()) or self.selectFlag else (255, 0, 0)
                 pos = (card.x, card.y+71)
                 textSurface = hoverText.render(
-                    card.plant.getname(), True, (0, 0, 0))
+                    card.plant.getname(), True, color)
                 textRect = textSurface.get_rect(topleft=pos)
                 pygame.draw.rect(screen, (252, 235, 98), textRect)
                 screen.blit(textSurface, pos)
@@ -353,14 +355,14 @@ class Game:
                                 menu.draw()
                             for card in self.Cards:
                                 if card.rect.collidepoint(event.pos):
-                                    if self.playSun >= int(card.price) and card.curTime == '0':
+                                    if self.curSun >= int(card.price) and card.curTime == '0':
                                         if card.selected:
                                             self.lastCard = card.selected = self.curPlant = None
                                         else:
                                             if self.lastCard:
                                                 self.lastCard.selected = None
                                             plantSlot_ogg.play()
-                                            card.selected = card.coolimage
+                                            card.selected = card.coolImage
                                             self.lastCard = card
                                             self.curPlant = card.plant
                                     else:
@@ -385,11 +387,11 @@ class Game:
                                             self.curPlant = None
                                         break
                                     elif lawn.rect.collidepoint(
-                                            event.pos) and self.curPlant and self.curPlant != 'eradicate' and self.lastCard.curTime == '0' and self.playSun >= self.curPlant.getprice():
+                                            event.pos) and self.curPlant and self.curPlant != 'eradicate' and self.lastCard.curTime == '0' and self.curSun >= self.curPlant.getprice():
                                         if lawn.planting(self.curPlant, (x, y)):
-                                            self.playSun -= self.curPlant.getprice()
+                                            self.curSun -= self.curPlant.getprice()
                                             self.curPlant = None
-                                            self.lastCard.curTime = self.lastCard.cooltime
+                                            self.lastCard.curTime = self.lastCard.coolTime
                                             self.lastCard.selected = None
                                         break
                         elif event.button == 3:
