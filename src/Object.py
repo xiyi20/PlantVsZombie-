@@ -1,3 +1,4 @@
+import math
 import pygame
 import Const
 import random
@@ -91,7 +92,7 @@ class Sun(Object):
         screen.blit(self.images[self.image_index], (self.x, self.y + 20))
 
     def pickup(self):
-        self.game.playSun += self.val
+        self.game.curSun += self.val
         self.game.Suns.remove(self)
 
 
@@ -129,23 +130,23 @@ class Peas(Object):
 class TrackPea(Peas):
     def __init__(self, x, y, gameObj, damm=20) -> None:
         super().__init__(x, y, gameObj, damm)
-        self.xSpeed = 4
-        self.ySpeed = 4
-        self.target = None
-        self.lastTarget = None
+        self.speed = 150
+        self.sina, self.cosa = 1, 1
 
     def draw(self):
         if self.tick % 10 == 0:
             self.image_index = (self.image_index + 1) % len(self.images)
         screen.blit(self.images[self.image_index], (self.x, self.y))
         self.tick += 1
-        if self.game.Zombies and self.lastTarget not in self.game.Zombies:
-            self.target = self.game.Zombies[0]
-            self.lastTarget = self.target
-            self.xSpeed = (self.target.x+45-self.x)/130
-            self.ySpeed = (self.target.y+82-self.y)/130
-        self.x += self.xSpeed
-        self.y += self.ySpeed
+        if self.game.Zombies:
+            target = self.game.Zombies[0]
+            tx = target.x+80
+            ty = target.y+85
+            distance = math.sqrt((tx-self.x)**2+(ty-self.y)**2)
+            self.sina = (tx - self.x)/distance
+            self.cosa = (ty - self.y)/distance
+        self.x += self.speed/60 * self.sina
+        self.y += self.speed/60 * self.cosa
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), 10)
         for zombie in self.game.Zombies:
             if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
