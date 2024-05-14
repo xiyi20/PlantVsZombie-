@@ -8,7 +8,7 @@ from Source import objectType, zombieType, screen, splat_ogg, zombie_falling_ogg
 
 class Zombie:
     def __init__(self, y, zombie, gameObj, type: int) -> None:
-        self.y = None
+        self.y = y
         self.x = Const.ZOMBIE_X
         self.xOffset = 10
         self.yOffset = 20
@@ -26,7 +26,8 @@ class Zombie:
         self.eat_count = 0
         self.state = 'walk'
         self.fps = 4
-        self.rect = None
+        self.rectOffset = 0
+        self.rect = pygame.Rect(self.x + self.rectOffset, self.y+75, 75, 80)
         self.hitEffect = splat_ogg
         self.lastState = None
         self.game.zombiesInroad[self.row].append(zombie)
@@ -48,8 +49,8 @@ class Zombie:
             if self.state == 'walk':
                 self.images = self.type[0]
                 self.x -= self.speed
-                self.rect = pygame.Rect(
-                    self.x + 100, self.y, 20, 48)
+                self.rect.x = self.x + self.rectOffset
+                # pygame.draw.rect(screen, (255, 0, 0), self.rect)
             else:
                 self.images = self.type[1]
                 if self.game.lawns[self.eating.row - 1][self.eating.col - 1].plant:
@@ -123,7 +124,7 @@ class NomalZ(Zombie):
         self.game = gameObj
         self.image_index = 0
         self.fps = 4.5
-        self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
+        self.rectOffset = 80
 
 
 class RoadZ(Zombie):
@@ -134,7 +135,7 @@ class RoadZ(Zombie):
         self.blood = Const.ROADZOMBIE_BLOOD
         self.fps = 5.5
         self.image_index = 0
-        self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
+        self.rectOffset = 95
 
 
 class IronBZ(Zombie):
@@ -146,7 +147,7 @@ class IronBZ(Zombie):
         self.fps = 5.5
         self.image_index = 0
         self.hitEffect = ironHit_ogg
-        self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
+        self.rectOffset = 75
 
 
 class RugbyZ(Zombie):
@@ -160,4 +161,4 @@ class RugbyZ(Zombie):
         self.image_index = 0
         self.fps = 4.5
         self.dieImages = objectType[16]
-        self.rect = pygame.Rect(self.x + 100, self.y, 20, 48)
+        self.rectOffset = 70

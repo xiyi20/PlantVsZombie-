@@ -251,7 +251,7 @@ class Game:
             interval = 180 if self.tick < 15000 else 90
             if self.tick == self.waves[-1] and self.loop:
                 self.waves.append(self.waves[-1] + 4800)
-                self.zombieTime[self.waves[-1]] = 25
+                self.zombieTime[self.waves[-1]] = 30
             for i in range(self.zombieTime[self.tick]):
                 self.zombieRule[self.tick + interval * i] = 1
         if self.tick in self.zombieRule:

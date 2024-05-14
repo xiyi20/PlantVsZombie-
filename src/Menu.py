@@ -398,7 +398,7 @@ class MainMenu:
                         self.game.gameBegin()
                     if self.survivalRect.collidepoint(event.pos):
                         self.game.flag = True
-                        if self.game.won:
+                        if not self.game.started:
                             self.game.init()
                         self.game.gameBegin(True)
                     elif self.saveRect.collidepoint(event.pos):
