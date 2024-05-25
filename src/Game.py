@@ -217,7 +217,6 @@ class Game:
             card.draw()
         for plant in self.Plants:
             plant.draw()
-            plant.shot()
         for i in range(1, 6):
             zombies = self.zombiesInroad[i]
             if zombies:

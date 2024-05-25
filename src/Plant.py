@@ -61,7 +61,7 @@ class Plant:
                     return True
         return False
 
-    def shot(self):
+    def action(self):
         pass
 
     def switchimg(self):
@@ -73,6 +73,7 @@ class Plant:
 
     def draw(self):
         self.switchimg()
+        self.action()
 
     def hurt(self, damm):
         self.blood -= damm
@@ -96,15 +97,14 @@ class SunFlower(Plant):
         self.game = gameObj
         self.image_index = 0
         self.images = plantType[0]
-        self.suntime = random.randint(180, 720)
+        self.interval = random.randint(180, 720)
 
-    def draw(self):
-        self.switchimg()
-        self.suntime -= 1
-        if self.suntime == 0:
+    def action(self):
+        self.interval -= 1
+        if self.interval == 0:
             self.game.Suns.append(
                 Sun(50, (self.x + 44, self.y + 25), self.game))
-            self.suntime = random.randint(1200, 1800)
+            self.interval = random.randint(1200, 1800)
 
 
 class PeaShooter(Plant):
@@ -122,7 +122,7 @@ class PeaShooter(Plant):
         self.image_index = 0
         self.images = plantType[1]
 
-    def shot(self):
+    def action(self):
         if self.check() and self.tick % self.interval == 0:
             self.game.Peas.append(
                 Peas(self.x, self.y, self.game, self.damm))
@@ -144,7 +144,7 @@ class Repeater(Plant):
         self.image_index = 0
         self.images = plantType[2]
 
-    def shot(self):
+    def action(self):
         if self.check() and self.tick % self.interval in [0, 10]:
             self.game.Peas.append(
                 Peas(self.x, self.y, self.game, self.damm))
@@ -169,7 +169,7 @@ class GatlingPea(Plant):
         self.image_index = 0
         self.images = plantType[9]
 
-    def shot(self):
+    def action(self):
         if self.check() and self.tick % self.interval in [0, 10, 20, 30]:
             self.game.Peas.append(
                 Peas(self.x, self.y, self.game, self.damm))
@@ -362,8 +362,7 @@ class Torchwood(Plant):
         self.images = plantType[8]
         self.rect = pygame.Rect(self.x + 20, self.y, 55, 80)
 
-    def draw(self):
-        self.switchimg()
+    def action(self):
         for pea in self.game.Peas:
             if self.rect.colliderect(pea.rect):
                 pea.damm == 65
@@ -399,9 +398,9 @@ class Catnip(Plant):
                     return zombie
         return None
 
-    def shot(self):
+    def action(self):
         target = self.check()
-        if target and self.tick % self.interval in [0,10]:
+        if target and self.tick % self.interval in [0, 10]:
             tem = TrackPea(self.x-15, self.y-5, self.game, self.damm)
             tem.images = self.shootImg
             self.game.Peas.append(tem)
@@ -410,7 +409,7 @@ class Catnip(Plant):
 class FireCatnip(Catnip):
     sunPrice = Const.FIRECATNIP_PRICE
     cooling = 3000
-    alone=False
+    alone = False
     image = 'img/猫尾草/火/0.png'
     name = '火球猫尾草'
 
@@ -418,11 +417,11 @@ class FireCatnip(Catnip):
         super().__init__(pos, gameObj)
         self.update = None
         self.damm = 65
-        self.interval=140
+        self.interval = 140
         self.shootImg = objectType[17]
         self.images = plantType[10]
 
-    def shot(self):
+    def action(self):
         target = self.check()
         if target and self.tick % self.interval in [0, 25]:
             tem = TrackPea(self.x-15, self.y-5, self.game, self.damm)
