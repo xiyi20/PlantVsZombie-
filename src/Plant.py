@@ -1,9 +1,12 @@
-import pygame
-import random
-import Const
 import math
-from Object import TrackPea, Sun, Peas
-from Source import objectType, plantType, getImageSource, getSoundEffect, screen, zombieEating_ogg, plantDead_ogg, potatoActive_ogg, potatoBoom_ogg, cherryBoom_ogg
+import random
+
+import pygame
+
+from src import Const
+from src.Object import TrackPea, Sun, Peas
+from src.Source import objectType, plantType, getImageSource, getSoundEffect, screen, zombieEating_ogg, plantDead_ogg, \
+    potatoActive_ogg, potatoBoom_ogg, cherryBoom_ogg
 
 
 class Plant:
@@ -35,7 +38,7 @@ class Plant:
         return cls.name
 
     @classmethod
-    def getprice(cls):
+    def getPrice(cls):
         return cls.sunPrice
 
     @classmethod
@@ -46,11 +49,11 @@ class Plant:
             return getImageSource(cls.image)
 
     @classmethod
-    def getcooltime(cls):
+    def getCooldown(cls):
         return cls.cooling
 
     @classmethod
-    def getalone(cls):
+    def getAlone(cls):
         return cls.alone
 
     def check(self):
@@ -64,7 +67,7 @@ class Plant:
     def action(self):
         pass
 
-    def switchimg(self):
+    def switchImg(self):
         if self.tick % self.fps == 0:
             self.image_index = (self.image_index + 1) % len(self.images)
         screen.blit(self.images[self.image_index],
@@ -72,7 +75,7 @@ class Plant:
         self.tick += 1
 
     def draw(self):
-        self.switchimg()
+        self.switchImg()
         self.action()
 
     def hurt(self, damm):
@@ -194,7 +197,7 @@ class SpicyChili(Plant):
         self.image_index = 0
         self.images = plantType[3]
         self.boom_index = 0
-        self.boomimages = plantType[4]
+        self.boomImages = plantType[4]
         self.boomRect = pygame.Rect(
             50, self.y, 730, self.images[0].get_height())
 
@@ -213,10 +216,10 @@ class SpicyChili(Plant):
                             zombie.dieImages = objectType[8]
                             zombie.dead = 2
         else:
-            screen.blit(self.boomimages[math.floor(
+            screen.blit(self.boomImages[math.floor(
                 self.boom_index)], (25, self.y - 40))
             self.boom_index += 0.25
-            if self.boom_index == len(self.boomimages):
+            if self.boom_index == len(self.boomImages):
                 self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 
 
@@ -255,7 +258,7 @@ class PotatoMine(Plant):
         self.image_index = 0
         self.active = False
         self.booming = False
-        self.boomtime = 0
+        self.boomTime = 0
         self.boom1 = objectType[3]
         self.boom2 = objectType[4]
         self.images0 = objectType[5]
@@ -265,7 +268,7 @@ class PotatoMine(Plant):
             pos[0], pos[1], self.images1[0].get_width(), self.images1[0].get_height())
 
     def draw(self):
-        willdie = []
+        willDie = []
         if not self.booming:
             if self.tick % 13 == 0:
                 self.image_index = (self.image_index + 1) % len(self.images)
@@ -280,10 +283,10 @@ class PotatoMine(Plant):
                 if self.rect.colliderect(zombie.rect) and self.active:
                     self.booming = True
                     potatoBoom_ogg.play()
-                    for deadzombie in self.game.zombiesInroad[self.row]:
-                        if -45 < deadzombie.x - self.x < 45:
-                            willdie.append(deadzombie)
-                    for i in willdie:
+                    for deadZombie in self.game.zombiesInroad[self.row]:
+                        if -45 < deadZombie.x - self.x < 45:
+                            willDie.append(deadZombie)
+                    for i in willDie:
                         if i.blood > 0:
                             i.blood -= self.damm
                             if i.blood <= 0:
@@ -291,12 +294,12 @@ class PotatoMine(Plant):
                                 i.dead = 1
                     break
         else:
-            if self.boomtime <= 60:
+            if self.boomTime <= 60:
                 screen.blits([
                     (self.boom2, (self.x - 30, self.y - 25)),
                     (self.boom1, (self.x - 45, self.y - 55))
                 ])
-                self.boomtime += 1
+                self.boomTime += 1
             else:
                 self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 
@@ -318,8 +321,8 @@ class CherryBomb(Plant):
         self.booming = False
         self.image_index = 0
         self.images = plantType[7]
-        self.boomtime = 0
-        self.boomimage = objectType[6]
+        self.boomTime = 0
+        self.boomImage = objectType[6]
         self.boomRect = pygame.Rect(self.x - 70, self.y - 30, 200, 130)
 
     def draw(self):
@@ -337,9 +340,9 @@ class CherryBomb(Plant):
                             zombie.dieImages = objectType[8]
                             zombie.dead = 2
         else:
-            if self.boomtime <= 30:
-                screen.blit(self.boomimage, (self.x - 70, self.y - 30))
-                self.boomtime += 1
+            if self.boomTime <= 30:
+                screen.blit(self.boomImage, (self.x - 70, self.y - 30))
+                self.boomTime += 1
             else:
                 self.game.lawns[self.row - 1][self.col - 1].Eradicate()
 

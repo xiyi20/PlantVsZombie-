@@ -1,7 +1,9 @@
-import Const
-import pygame
 import random
-from Source import plant_ogg
+
+import pygame
+
+from src import Const
+from src.Source import plant_ogg
 
 
 class Lawn:
@@ -23,7 +25,7 @@ class Lawn:
             self.game.plantsInroad[self.row].append(self.plant)
             random.choice(plant_ogg).play()
 
-        if not self.plant and plant.getalone():
+        if not self.plant and plant.getAlone():
             setPlant()
             return True
         elif self.plant and self.plant.update == plant:

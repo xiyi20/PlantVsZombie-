@@ -1,10 +1,11 @@
 import pygame
-import Const
-from Source import objectType, getImageSource, priceText, screen
+
+from src import Const
+from src.Source import objectType, getImageSource, priceText, screen
 
 
 class Card:
-    def __init__(self, img, plant, price, cooltime, gameObj, x, y=7) -> None:
+    def __init__(self, img, plant, price, cooldown, gameObj, x, y=7) -> None:
         self.rect = None
         self.img = img
         self.plant = plant
@@ -12,8 +13,8 @@ class Card:
         self.active = False
         self.price = str(price)
         self.coolImage = objectType[11]
-        self.coolTime = str(cooltime)
-        self.interval = Const.CARD_HEIGHT / cooltime
+        self.coolTime = str(cooldown)
+        self.interval = Const.CARD_HEIGHT / cooldown
         self.curTime = '0'
         self.game = gameObj
         self.x = x

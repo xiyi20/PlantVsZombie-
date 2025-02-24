@@ -1,8 +1,10 @@
 import math
-import pygame
-import Const
 import random
-from Source import objectType, screen, car_ogg, shoot_ogg
+
+import pygame
+
+from src import Const
+from src.Source import objectType, screen, car_ogg, shoot_ogg
 
 
 class Object:
@@ -116,15 +118,19 @@ class Peas(Object):
         self.x += self.speed
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), 10)
         for zombie in self.game.zombiesInroad[self.game.rowRoad[self.y - 5]]:
-            if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
-                zombie.blood -= self.damm
-                random.choice(zombie.hitEffect).play()
-                self.game.Peas.remove(self)
-                if zombie.blood <= 0:
-                    zombie.dead = 1
-                break
+            if self.attack(zombie): break
         if self.x >= self.destroyPos and self in self.game.Peas:
             self.game.Peas.remove(self)
+
+    def attack(self, zombie):
+        if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
+            zombie.blood -= self.damm
+            random.choice(zombie.hitEffect).play()
+            self.game.Peas.remove(self)
+            if zombie.blood <= 0:
+                zombie.dead = 1
+            return True
+        return False
 
 
 class TrackPea(Peas):
@@ -140,21 +146,15 @@ class TrackPea(Peas):
         self.tick += 1
         if self.game.Zombies:
             target = self.game.Zombies[0]
-            tx = target.x+80
-            ty = target.y+85
-            distance = math.sqrt((tx-self.x)**2+(ty-self.y)**2)
-            self.sina = (tx - self.x)/distance
-            self.cosa = (ty - self.y)/distance
-        self.x += self.speed/60 * self.sina
-        self.y += self.speed/60 * self.cosa
+            tx = target.x + 80
+            ty = target.y + 85
+            distance = math.sqrt((tx - self.x) ** 2 + (ty - self.y) ** 2)
+            self.sina = (tx - self.x) / distance
+            self.cosa = (ty - self.y) / distance
+        self.x += self.speed / 60 * self.sina
+        self.y += self.speed / 60 * self.cosa
         self.rect = pygame.Rect(self.x, self.y, self.images[0].get_width(), 10)
         for zombie in self.game.Zombies:
-            if zombie.rect.colliderect(self.rect) and zombie.blood > 0:
-                zombie.blood -= self.damm
-                random.choice(zombie.hitEffect).play()
-                self.game.Peas.remove(self)
-                if zombie.blood <= 0:
-                    zombie.dead = 1
-                break
+            if self.attack(zombie): break
         if (self.x >= self.destroyPos or self.y < 0 or self.y > 600) and self in self.game.Peas:
             self.game.Peas.remove(self)

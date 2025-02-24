@@ -1,14 +1,19 @@
 import sys
+
 import pygame
 import pygame.mixer
 from pygame.locals import K_a, K_z
-from RWconfig import rwconfig
-from Shop import Shop
-from Source import getImageSource, getSoundEffect, screen, invalidClick_ogg, menuText, buttonClick_ogg, mainMenuBgm_ogg, paper_ogg, tittleText, menuClick_ogg
+
+from src.RwConfig import rwConfig
+from src.Shop import Shop
+from src.Source import getImageSource, getSoundEffect, screen, invalidClick_ogg, menuText, buttonClick_ogg, \
+    mainMenuBgm_ogg, paper_ogg, tittleText, menuClick_ogg
 
 
 class Menu:
     def __init__(self, game) -> None:
+        self.pointerRect = None
+        self.mainMenuObj = None
         self.flag = True
         self.game = game
         self.pause_ogg = getSoundEffect('aud/pause.ogg')
@@ -24,7 +29,7 @@ class Menu:
         self.progress = getImageSource('img/widget/菜单栏/options_sliderslot.png')
         self.pointer = getImageSource('img/widget/菜单栏/options_sliderknob2.png')
         self.isPoint = False
-        self.pointPos = (rwconfig.menuvolume / 0.008775 + 350, 208)
+        self.pointPos = (rwConfig.menuVolume / 0.008775 + 350, 208)
         self.button = pygame.transform.scale(game.menu, (200, 41))
         self.againRect = pygame.Rect(295, 333, 200, 41)
         self.mainMenuRect = pygame.Rect(295, 375, 200, 41)
@@ -50,14 +55,14 @@ class Menu:
 
     def draw(self):
         self.flag = True
-        from Source import mainMenu
+        from src.Source import mainMenu
         self.mainMenuObj = mainMenu
         if self.game.started:
-            self.pointPos = (rwconfig.gamevolume / 0.008775 + 350, 208)
+            self.pointPos = (rwConfig.gameVolume / 0.008775 + 350, 208)
             self.pause_ogg.play()
             self.game.pause = True
         else:
-            self.pointPos = (rwconfig.menuvolume / 0.008775 + 350, 208)
+            self.pointPos = (rwConfig.menuVolume / 0.008775 + 350, 208)
         while self.flag:
             for event in pygame.event.get():
                 self.update()
@@ -95,16 +100,16 @@ class Menu:
                         if self.game.started:
                             curVolume = 'game'
                             self.game.pause = False
-                        rwconfig.wconfig('volume', curVolume, 0.008775 * (self.pointPos[0] - 350))
+                        rwConfig.wConfig('volume', curVolume, 0.008775 * (self.pointPos[0] - 350))
                 elif event.type == pygame.MOUSEMOTION:
                     if self.volumeDown and self.isPoint:
                         x = min(max(361, event.pos[0]), 474)
                         self.pointPos = (x - 10, 208)
                 self.returnImg = self.returnImg0
         if not self.game.started:
-            mainMenuBgm_ogg.set_volume(rwconfig.menuvolume)
+            mainMenuBgm_ogg.set_volume(rwConfig.menuVolume)
         else:
-            pygame.mixer.music.set_volume(rwconfig.gamevolume)
+            pygame.mixer.music.set_volume(rwConfig.gameVolume)
 
 
 class MainMenu:
@@ -112,7 +117,7 @@ class MainMenu:
         self.flag = True
         self.game = game
         self.seller = Shop()
-        mainMenuBgm_ogg.set_volume(rwconfig.menuvolume)
+        mainMenuBgm_ogg.set_volume(rwConfig.menuVolume)
         self.menuClick_ogg = getSoundEffect('aud/bleep.ogg')
 
         # 开屏界面
@@ -214,15 +219,16 @@ class MainMenu:
 
         # 读取配置
         self.naming = True
-        self.name = rwconfig.name
+        self.name = rwConfig.name
         self.typing = self.name
         self.confirm = pygame.Rect(190, 331, 204, 44)
         self.cancel = pygame.Rect(410, 331, 204, 44)
 
-        from Source import menu
+        from src.Source import menu
         self.menuObj = menu
 
-    def playmusic(self):
+    @staticmethod
+    def playmusic():
         mainMenuBgm_ogg.play(-1)
 
     def init(self):
@@ -315,7 +321,7 @@ class MainMenu:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.confirm.collidepoint(event.pos):
                         if self.click(1):
-                            rwconfig.wconfig('user', 'name', self.typing)
+                            rwConfig.wConfig('user', 'name', self.typing)
                             self.name = self.typing
                             self.naming = False
                     elif self.cancel.collidepoint(event.pos):

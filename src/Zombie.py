@@ -1,9 +1,11 @@
-import pygame
-import Const
 import math
 import random
-from Coin import SilverCoin, GoldCoin, Diamond
-from Source import objectType, zombieType, screen, splat_ogg, zombie_falling_ogg, ironHit_ogg
+
+import pygame
+
+from src import Const
+from src.Coin import SilverCoin, GoldCoin, Diamond
+from src.Source import objectType, zombieType, screen, splat_ogg, zombie_falling_ogg, ironHit_ogg
 
 
 class Zombie:
@@ -44,7 +46,7 @@ class Zombie:
                 if self.rect.colliderect(plant.rect):
                     self.eating = plant
                     self.state = 'eat'
-                    self.resetstate()
+                    self.resetState()
                     break
             if self.state == 'walk':
                 self.images = self.type[0]
@@ -57,13 +59,13 @@ class Zombie:
                     if self.eat_count % 60 == 0:
                         if self.eating.hurt(self.damm):
                             self.state = 'walk'
-                            self.resetstate()
+                            self.resetState()
                             self.eating = None
                     self.eat_count += 1
                 else:
                     self.eat_count = 60
                     self.state = 'walk'
-                    self.resetstate()
+                    self.resetState()
                     self.eating = None
             if self.tick % self.fps == 0:
                 self.image_index = (self.image_index + 1) % len(self.images)
@@ -72,16 +74,16 @@ class Zombie:
                         (self.x + self.xOffset, self.y + self.yOffset))
         else:
             if self.deadAnimation:
-                self.dieanimation()
+                self.dieAnimation()
             else:
                 self.destroy()
 
-    def resetstate(self):
+    def resetState(self):
         if self.lastState != self.state:
             self.image_index = 0
             self.lastState = self.state
 
-    def dieanimation(self):
+    def dieAnimation(self):
         if self.deadIndex < len(self.dieImages):
             curIndex = math.floor(self.deadIndex)
             bodyFrame = self.dieImages[curIndex]
@@ -97,7 +99,7 @@ class Zombie:
             random.choice(zombie_falling_ogg).play()
 
     def destroy(self):
-        from Object import Sun
+        from src.Object import Sun
         choose = random.randrange(100)
         if 0 < choose <= 10:
             money = None
@@ -117,7 +119,7 @@ class Zombie:
         self.game.wonPos = [self.x + 30, self.y + 90]
 
 
-class NomalZ(Zombie):
+class NormalZ(Zombie):
     def __init__(self, y, gameObj) -> None:
         super().__init__(y, self, gameObj, 0)
         self.y = y

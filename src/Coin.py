@@ -1,21 +1,22 @@
 import pygame
-import Const
-from RWconfig import rwconfig
-from Source import objectType, coinFall_ogg, screen, diamondFall_ogg, coinPick_ogg, diamondPick_ogg
+
+from src import Const
+from src.RwConfig import rwConfig
+from src.Source import objectType, coinFall_ogg, screen, diamondFall_ogg, coinPick_ogg, diamondPick_ogg
 
 
 class Coin:
-    def __init__(self, x, y, gameObj, cointype=0) -> None:
+    def __init__(self, x, y, gameObj, coinType=0) -> None:
         self.x = x
         self.y = y
         self.val = 50
         self.pick = False
         self.first = True
-        self.xspeed = 0
-        self.yspeed = 0
+        self.xSpeed = 0
+        self.ySpeed = 0
         self.game = gameObj
         self.tick = 0
-        self.fall_ogg = coinFall_ogg if cointype == 0 else diamondFall_ogg
+        self.fall_ogg = coinFall_ogg if coinType == 0 else diamondFall_ogg
         self.pick_ogg = coinPick_ogg
         self.image = objectType[12]
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
@@ -29,10 +30,10 @@ class Coin:
                 self.first = False
                 if self.pick_ogg:
                     self.pick_ogg.play()
-                self.xspeed = (10 - self.x) / Const.COIN_SPEED
-                self.yspeed = (580 - self.y) / Const.COIN_SPEED
-            self.x += self.xspeed
-            self.y += self.yspeed
+                self.xSpeed = (10 - self.x) / Const.COIN_SPEED
+                self.ySpeed = (580 - self.y) / Const.COIN_SPEED
+            self.x += self.xSpeed
+            self.y += self.ySpeed
             if self.rect.colliderect(self.endRect):
                 self.pickup()
         self.tick += 1
@@ -43,7 +44,7 @@ class Coin:
 
     def pickup(self):
         self.game.money += self.val
-        rwconfig.wConfig('user', 'money', self.game.money)
+        rwConfig.wConfig('user', 'money', self.game.money)
         self.game.Coins.remove(self)
 
 

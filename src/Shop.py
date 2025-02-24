@@ -1,7 +1,9 @@
 import sys
+
 import pygame
-from RWconfig import rwconfig
-from Source import screen, objectType, menuText, scoreText, invalidClick_ogg, getImageSource, goodsType
+
+from src.RwConfig import rwConfig
+from src.Source import screen, objectType, menuText, scoreText, invalidClick_ogg, getImageSource, goodsType
 
 
 class Goods:
@@ -30,13 +32,14 @@ class Goods:
 
 class Shop:
     def __init__(self) -> None:
+        self.money = None
         self.flag = True
         self.dialogFlag = True
         self.image = objectType[19]
         self.Goods = []
         col,rol=0,0
-        for key in rwconfig.prop:
-            prop = rwconfig.prop[key]
+        for key in rwConfig.prop:
+            prop = rwConfig.prop[key]
             self.Goods.append(
                 Goods(380+80*col, 315, key, prop['name'], prop['image'], prop['price'], prop['state']))
             col += 1
@@ -75,9 +78,9 @@ class Shop:
                     if self.confirmRect.collidepoint(event.pos):
                         if self.money >= price:
                             goods.state = 0
-                            rwconfig.wConfig('user', 'money', self.money - price)
-                            rwconfig.wConfig(propId, 'state', 0, True)
-                            self.money = rwconfig.money
+                            rwConfig.wConfig('user', 'money', self.money - price)
+                            rwConfig.wConfig(propId, 'state', 0, True)
+                            self.money = rwConfig.money
                             self.dialogFlag = False
                         else:
                             invalidClick_ogg.play()
@@ -86,8 +89,8 @@ class Shop:
 
     def draw(self):
         self.flag = True
-        rwconfig.lconfig()
-        self.money = rwconfig.money
+        rwConfig.lconfig()
+        self.money = rwConfig.money
         while self.flag:
             screen.blits([
                 (self.image, (0, 0)),

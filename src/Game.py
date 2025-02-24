@@ -3,20 +3,57 @@ import sys
 
 import pygame
 
-import Const
-from Card import Card
-from Coin import GoldCoin
-from Object import Car, Sun
-from Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, GatlingPea
-from RWconfig import rwconfig
-from Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, \
+from src import Const
+from src.Card import Card
+from src.Coin import GoldCoin
+from src.Object import Car, Sun
+from src.Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, \
+    GatlingPea
+from src.RwConfig import rwConfig
+from src.Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, \
     plant_ogg, plantSlot_ogg, waveText, hoverText, scoreText, menuText, zombieComing_ogg, zombieGroan_ogg, \
     loseMusic_ogg, winMusic_ogg, backGroundMusic, mainMenuBgm_ogg, pickup_ogg, shovel_ogg
-from Zombie import NomalZ, RoadZ, IronBZ, RugbyZ
+from src.Zombie import NormalZ, RoadZ, IronBZ, RugbyZ
 
 
 class Game:
     def __init__(self) -> None:
+        self.loop = None
+        self.moneybagRect = None
+        self.paused = None
+        self.Zombies = None
+        self.Coins = None
+        self.Suns = None
+        self.Cars = None
+        self.plantsInroad = None
+        self.lawns = None
+        self.Plants = None
+        self.Cards = None
+        self.Peas = None
+        self.lastCard = None
+        self.zombiesInroad = None
+        self.curPlant = None
+        self.shovelActive = None
+        self.endScore = None
+        self.curScore = None
+        self.waves = None
+        self.lastWave = None
+        self.wave = None
+        self.zombieTime = None
+        self.ZombiesType = None
+        self.zombieRule = None
+        self.wonPos = None
+        self.wonFlag = None
+        self.won = None
+        self.alpha = None
+        self.animation = None
+        self.started = None
+        self.selectFlag = None
+        self.flag = None
+        self.curSun = None
+        self.tick = None
+        self.first = None
+        self.money = None
         self.endRect = pygame.Rect(310, 241, 40, 40)
         self.background = pygame.transform.scale(
             getImageSource('img/scene/白天.jpg'), (1400, 600))
@@ -59,8 +96,8 @@ class Game:
         self.init()
 
     def init(self):
-        rwconfig.lconfig()
-        self.money = rwconfig.money
+        rwConfig.lconfig()
+        self.money = rwConfig.money
         self.first = True
         self.tick = 0
         self.curSun = 25
@@ -73,7 +110,7 @@ class Game:
         self.wonFlag = False
         self.wonPos = [550, 350]
         self.zombieRule = dict()
-        self.ZombiesType = [NomalZ]
+        self.ZombiesType = [NormalZ]
         self.zombieTime = {120: 1, 1800: 2, 3600: 3,
                            5400: 5, 7800: 7, 10200: 8, 13200: 15, 17400: 25}
         self.wave = 0
@@ -88,7 +125,7 @@ class Game:
         self.plantsInroad = {1: [], 2: [], 3: [], 4: [], 5: []}
         self.Cards = []
         self.Peas = []
-        from Lawn import Lawn
+        from src.Lawn import Lawn
         self.lawns = [[Lawn(20 + (82 * x), 95 + (96 * y), self)
                        for x in range(9)] for y in range(5)]
         self.Plants = []
@@ -98,8 +135,8 @@ class Game:
         self.Coins = []
         self.paused = False
         # 加载装备
-        for key in rwconfig.prop:
-            prop = rwconfig.prop[key]
+        for key in rwConfig.prop:
+            prop = rwConfig.prop[key]
             if prop['state'] == 0:
                 obj = globals()[Const.PROP[key]]
                 self.plantCards[obj.getimage(1)] = obj
@@ -115,7 +152,7 @@ class Game:
             if col == 9:
                 row += 1
             self.Cards.append(
-                Card(key, value, value.getprice(), value.getcooltime(), self, 13 + 50 * (col % 9), 122 + 72 * row))
+                Card(key, value, value.getPrice(), value.getCooldown(), self, 13 + 50 * (col % 9), 122 + 72 * row))
             col += 1
         self.selectFlag = True
         self.update()
@@ -169,7 +206,7 @@ class Game:
                         self.paused = False
 
     def win(self):
-        from Source import mainMenu
+        from src.Source import mainMenu
         if self.animation:
             mask = pygame.Surface((800, 600))
             mask.set_alpha(self.alpha)
@@ -274,7 +311,7 @@ class Game:
             self.won = True
         # 失败
         for zombie in self.Zombies:
-            if zombie.x <= -100:
+            if zombie.x <= -120:
                 pygame.mixer.music.pause()
                 self.paused = True
                 for i in zombieEating_ogg:
@@ -292,7 +329,7 @@ class Game:
         for card in self.Cards:
             if card.rect.collidepoint(pos):
                 color = (0, 0, 0) if (card.curTime == '0' and self.curSun >=
-                                      card.plant.getprice()) or self.selectFlag else (255, 0, 0)
+                                      card.plant.getPrice()) or self.selectFlag else (255, 0, 0)
                 pos = (card.x, card.y+71)
                 textSurface = hoverText.render(
                     card.plant.getname(), True, color)
@@ -301,13 +338,14 @@ class Game:
                 screen.blit(textSurface, pos)
                 break
 
-    def playmusic(self):
+    @staticmethod
+    def playmusic():
         pygame.mixer.music.load("../"+random.choice(backGroundMusic))
-        pygame.mixer.music.set_volume(rwconfig.gamevolume)
+        pygame.mixer.music.set_volume(rwConfig.gameVolume)
         pygame.mixer.music.play(-1)
 
     def gameBegin(self, loop=False):
-        from Source import menu
+        from src.Source import menu
         self.loop = loop
         mainMenuBgm_ogg.stop()
         self.started = True
@@ -390,9 +428,9 @@ class Game:
                                             self.curPlant = None
                                         break
                                     elif lawn.rect.collidepoint(
-                                            event.pos) and self.curPlant and self.curPlant != 'eradicate' and self.lastCard.curTime == '0' and self.curSun >= self.curPlant.getprice():
+                                            event.pos) and self.curPlant and self.curPlant != 'eradicate' and self.lastCard.curTime == '0' and self.curSun >= self.curPlant.getPrice():
                                         if lawn.planting(self.curPlant, (x, y)):
-                                            self.curSun -= self.curPlant.getprice()
+                                            self.curSun -= self.curPlant.getPrice()
                                             self.curPlant = None
                                             self.lastCard.curTime = self.lastCard.coolTime
                                             self.lastCard.selected = None
