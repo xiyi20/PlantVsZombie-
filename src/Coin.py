@@ -43,7 +43,7 @@ class Coin:
 
     def pickup(self):
         self.game.money += self.val
-        rwconfig.wconfig('user', 'money', self.game.money)
+        rwconfig.wConfig('user', 'money', self.game.money)
         self.game.Coins.remove(self)
 
 

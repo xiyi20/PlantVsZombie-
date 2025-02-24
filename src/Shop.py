@@ -75,8 +75,8 @@ class Shop:
                     if self.confirmRect.collidepoint(event.pos):
                         if self.money >= price:
                             goods.state = 0
-                            rwconfig.wconfig('user', 'money', self.money-price)
-                            rwconfig.wconfig(propId, 'state', 0, True)
+                            rwconfig.wConfig('user', 'money', self.money - price)
+                            rwconfig.wConfig(propId, 'state', 0, True)
                             self.money = rwconfig.money
                             self.dialogFlag = False
                         else:

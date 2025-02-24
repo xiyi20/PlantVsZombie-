@@ -9,7 +9,7 @@ class RWconfig:
     def lconfig(self):
         if self.file:
             self.file.close()
-        self.file = open('config.json', 'r', encoding='utf-8')
+        self.file = open('../config.json', 'r', encoding='utf-8')
         self.config = json.load(self.file)
         self.rconfig()
 
@@ -22,7 +22,7 @@ class RWconfig:
         self.prop = self.config['prop']
 
     def wconfig(self, zone, name, value, prop=False):
-        with open('config.json', 'w') as f:
+        with open('../config.json', 'w') as f:
             if prop:
                 self.config['prop'][zone][name] = value
             else:

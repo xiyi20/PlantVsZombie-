@@ -95,8 +95,7 @@ class Menu:
                         if self.game.started:
                             curVolume = 'game'
                             self.game.pause = False
-                        rwconfig.wconfig('volume', curVolume,
-                                         0.008775 * (self.pointPos[0] - 350))
+                        rwconfig.wconfig('volume', curVolume, 0.008775 * (self.pointPos[0] - 350))
                 elif event.type == pygame.MOUSEMOTION:
                     if self.volumeDown and self.isPoint:
                         x = min(max(361, event.pos[0]), 474)

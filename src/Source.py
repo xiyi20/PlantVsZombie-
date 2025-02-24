@@ -9,11 +9,11 @@ mainMenu = None
 
 
 def getImageSource(path):
-    return pygame.image.load(path)
+    return pygame.image.load(f"../{path}")
 
 
 def getSoundEffect(path):
-    return pygame.mixer.Sound(path)
+    return pygame.mixer.Sound(f"../{path}")
 
 
 clock = pygame.time.Clock()
@@ -21,12 +21,12 @@ screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption('Plant Vs Zombie α')
 pygame.display.set_icon(getImageSource('img/icon.png'))
 
-scoreText = pygame.font.Font('font/digit.ttf', 15)
-priceText = pygame.font.Font('font/digit.ttf', 13)
-menuText = pygame.font.Font('font/fzsr.ttf', 22)
-tittleText = pygame.font.Font('font/fzsr.ttf', 48)
-waveText = pygame.font.Font('font/fzxs12.ttf', 12)
-hoverText = pygame.font.Font('font/fzxs12.ttf', 17)
+scoreText = pygame.font.Font('../font/digit.ttf', 15)
+priceText = pygame.font.Font('../font/digit.ttf', 13)
+menuText = pygame.font.Font('../font/fzsr.ttf', 22)
+tittleText = pygame.font.Font('../font/fzsr.ttf', 48)
+waveText = pygame.font.Font('../font/fzxs12.ttf', 12)
+hoverText = pygame.font.Font('../font/fzxs12.ttf', 17)
 plantDead_ogg = getSoundEffect('aud/bigchomp.ogg')
 zombieComing_ogg = getSoundEffect('aud/awooga.ogg')
 potatoActive_ogg = getSoundEffect('aud/gravestone_rumble.ogg')

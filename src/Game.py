@@ -1,14 +1,18 @@
-import sys
-import pygame
-import Const
 import random
-from RWconfig import rwconfig
+import sys
+
+import pygame
+
+import Const
+from Card import Card
 from Coin import GoldCoin
 from Object import Car, Sun
-from Card import Card
+from Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, GatlingPea
+from RWconfig import rwconfig
+from Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, \
+    plant_ogg, plantSlot_ogg, waveText, hoverText, scoreText, menuText, zombieComing_ogg, zombieGroan_ogg, \
+    loseMusic_ogg, winMusic_ogg, backGroundMusic, mainMenuBgm_ogg, pickup_ogg, shovel_ogg
 from Zombie import NomalZ, RoadZ, IronBZ, RugbyZ
-from Plant import SunFlower, PeaShooter, Repeater, SpicyChili, NutsWall, PotatoMine, CherryBomb, Torchwood, GatlingPea, Catnip, FireCatnip
-from Source import objectType, getImageSource, getSoundEffect, screen, clock, zombieEating_ogg, invalidClick_ogg, plant_ogg, plantSlot_ogg, waveText, hoverText, scoreText, menuText, zombieComing_ogg, zombieGroan_ogg, loseMusic_ogg, winMusic_ogg, backGroundMusic, mainMenuBgm_ogg, pickup_ogg, shovel_ogg
 
 
 class Game:
@@ -103,7 +107,7 @@ class Game:
     def selectPlant(self):
         curCards = 0
         pygame.mixer.music.load(
-            'aud/bgm/Choose Your Seeds-Laura Shigihara.mp3')
+            '../aud/bgm/Choose Your Seeds-Laura Shigihara.mp3')
         pygame.mixer.music.play(-1)
         self.Cards = []
         col, row = 0, 0
@@ -298,7 +302,7 @@ class Game:
                 break
 
     def playmusic(self):
-        pygame.mixer.music.load(random.choice(backGroundMusic))
+        pygame.mixer.music.load("../"+random.choice(backGroundMusic))
         pygame.mixer.music.set_volume(rwconfig.gamevolume)
         pygame.mixer.music.play(-1)
 
