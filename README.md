@@ -19,7 +19,7 @@
 
 1. 安装Python 3.x和Pygame库
 2. 下载游戏源代码
-3. 在命令行中进入游戏源代码所在目录的 src 文件夹
+3. 在命令行中进入游戏源代码所在目录
 4. 运行命令 `python Main.py` 以启动游戏
 5. 或者点击本项目的[Actions](https://github.com/xiyi20/PlantVsZombie-/actions)选择最新的一个成功的工作流，下载并解压已经打包好的文件(Plant Vs Zombie)，双击文件夹中的Plant Vs Zombie α.exe程序以开始游戏
 
